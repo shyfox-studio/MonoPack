@@ -1,0 +1,3 @@
+[submodule "shared-configuration"]
+	path = shared-configuration
+	url = https://github.com/shyfox-studio/shared-configuration.git
