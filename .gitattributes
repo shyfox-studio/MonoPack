@@ -40,6 +40,7 @@
 *.jpeg              binary
 *.png               binary
 *.webp              binary
+*.icns              binary
 
 ################################################################################
 ### MGFXO file behavior
