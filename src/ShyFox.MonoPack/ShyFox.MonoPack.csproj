@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <IsPackable>true</IsPackable>
+    <PackageId>MonoPack</PackageId>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>monopack</ToolCommandName>
+    <Description>
+      A dotnet tool that builds and packages MonoGame projects for Windows, macOS, and
+      Linux.
+    </Description>
+    <PackageTags>monogame;packaging;cross-platform</PackageTags>
+    <PackageProjectUrl>https://github.com/shyfox-studio/monopack</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/shyfox-studio/monopack</RepositoryUrl>
+    <PackageIcon>monopack-128.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../shared-configuration/branding/icons/monopack/monopack-128.png" Pack="true" PackagePath="" />
+    <None Include="../../README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+</Project>

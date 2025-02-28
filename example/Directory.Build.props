@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+
+    <!-- overwrite build locations from the shared configuration -->
+    <PropertyGroup>
+        <BaseArtifactsPath />
+        <BaseArtifactsPathSuffix />
+        <BaseIntermediateOutputPath />
+        <BaseOutputPath />
+        <PackageOutputPath />
+    </PropertyGroup>
+
+</Project>
