@@ -369,25 +369,17 @@ void PackageOSXUniversal()
     // the x64 and arm64 directories
     if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
     {
-        // Combine the two executables using lipo
-        string amd64ExecutablePath = Path.Combine(amd64SourceDir, projectName);
+        // Copy the osx-amd64 files
+        CopyDirectory(amd64SourceDir, macOSDir);
+
+        // Combine the osx-arm64 executable using lip
+        string amd64ExecutablePath = Path.Combine(macOSDir, projectName);
         string arm64ExecutablePath = Path.Combine(arm64SourceDir, projectName);
-        Lipo(amd64ExecutablePath, arm64ExecutablePath, macOSDir);
-
-        // Combine the dylib files using lipo
-        foreach (string filePath in Directory.GetFiles(amd64SourceDir))
-        {
-            string fileName = Path.GetFileName(filePath);
-
-            if (Path.GetExtension(fileName) == ".dylib")
-            {
-                string arm64FilePath = Path.Combine(arm64SourceDir, fileName);
-                Lipo(filePath, arm64FilePath, macOSDir);
-            }
-        }
+        string universalExecutablePath = Path.Combine(macOSDir, projectName);
+        Lipo(amd64ExecutablePath, arm64ExecutablePath, universalExecutablePath);
 
         // Move the game Content directory to the resources directory
-        string gameContentDir = Path.Combine(amd64SourceDir, "Content");
+        string gameContentDir = Path.Combine(macOSDir, "Content");
         Directory.Move(gameContentDir, contentsResourceDir);
     }
     else
