@@ -1,4 +1,9 @@
-﻿using System.Diagnostics;
+﻿// Copyright (c) ShyFox Studio. All rights reserved.
+// Licensed under the MIT license.
+// See LICENSE file in the project root for full license information.
+
+
+using System.Diagnostics;
 using System.Formats.Tar;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
