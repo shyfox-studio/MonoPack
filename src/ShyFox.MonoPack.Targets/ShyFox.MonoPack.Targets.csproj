@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<IncludeBuildOutput>false</IncludeBuildOutput>
+		<SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+		<Description>Automate packaging of MonoGame DesktopGL projects for Windows, macOS, and Linux</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Content Include="ShyFox.MonoPack.targets" PackagePath="build" />
+	</ItemGroup>
+
+</Project>
