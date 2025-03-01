@@ -517,7 +517,7 @@ void TarDirectory(string sourceDirectory, bool includeBaseDirectory, Stream stre
         else
         {
             entry.Mode = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.GroupRead | UnixFileMode.OtherRead;// Default permissions for Windows
-            if (executableFiles.Contains(Path.GetFileName(filePath)))
+            if (executableFiles.Contains(Path.GetFileName(Path.GetFileNameWithoutExtension(filePath))))
             {
                 entry.Mode |= UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
             }
