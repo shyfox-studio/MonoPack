@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace ExampleGame;
+namespace ShyFox.MonoPack.Tool.Example;
 
 public class Game1 : Game
 {
