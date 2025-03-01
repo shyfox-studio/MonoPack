@@ -18,7 +18,24 @@ string _outputDir = string.Empty;           // Path to the output directory.
 List<string> _runtimeIdentifiers = new();   // The runtime identifiers to build for
 string _infoPlistPath = string.Empty;       // Path to the Info.plist file (required for macOS).
 string _icnsPath = string.Empty;            // Path to the Apple Icon (.icns) file (required for macOS).
+string _executableFile = null;              // The name of the executable files to set as executable.
 bool _verbos = false;                       // Indicates whether verbose output is enabled.
+
+if (Debugger.IsAttached && args.Length == 0)
+{
+    args = [
+        "-p", "../../../../../../examples/ShyFox.MonoPack.Tool.Example/ShyFox.MonoPack.Tool.Example.csproj",
+        "-o", "./artifacts/builds",
+        "-r", "win-x64",
+        "-r", "osx-x64",
+        "-r", "osx-arm64",
+        "-r", "linux-x64",
+        "-i", "../../../../../../examples/ShyFox.MonoPack.Tool.Example/Info.plist",
+        "-c", "../../../../../../examples/ShyFox.MonoPack.Tool.Example/Icon.icns",
+        "-e", "ExampleGame",
+        "-v"
+    ];
+}
 
 ParseArguments();                           // Parse the command line arguments given
 ValidateArguments();                        // Validate the parsed arguments and set defaults if needed.
@@ -144,7 +161,7 @@ void PackageWindows()
 {
     string projectName = Path.GetFileNameWithoutExtension(_projectPath);
     string sourceDir = Path.Combine(_outputDir, WINDOWS_RID);
-    string zipPath = Path.Combine(_outputDir, $"{projectName}-{WINDOWS_RID}.zip");
+    string zipPath = Path.Combine(_outputDir, $"{_executableFile ?? projectName}-{WINDOWS_RID}.zip");
 
     if (File.Exists(zipPath))
     {
@@ -161,7 +178,7 @@ void PackageLinux()
 {
     string projectName = Path.GetFileNameWithoutExtension(_projectPath);
     string sourceDir = Path.Combine(_outputDir, LINUX_RID);
-    string tarPath = Path.Combine(_outputDir, $"{projectName}-{LINUX_RID}.tar.gz");
+    string tarPath = Path.Combine(_outputDir, $"{_executableFile ?? projectName}-{LINUX_RID}.tar.gz");
 
     if (File.Exists(tarPath))
     {
@@ -177,7 +194,7 @@ void PackageLinux()
             Warning: Building for Linux on Windows.
             Perform the following once the archive has been extracted on Linux to make it executable:
                 1. Open a terminal in the directory where the archive was unpacked to.
-                2. Execute the command "chmod +x ./{projectName}"
+                2. Execute the command "chmod +x ./{_executableFile ?? projectName}"
             --------
 
             """
@@ -185,13 +202,13 @@ void PackageLinux()
     }
     else
     {
-        Chmod(Path.Combine(sourceDir, projectName));
+        Chmod(Path.Combine(sourceDir, _executableFile ?? projectName));
     }
 
     using FileStream fs = new(tarPath, FileMode.Create, FileAccess.Write);
     using GZipStream gz = new(fs, CompressionMode.Compress, leaveOpen: true);
-    TarFile.CreateFromDirectory(sourceDir, gz, includeBaseDirectory: false);
-
+    TarDirectory(sourceDir, false, gz, _executableFile, projectName);
+    
     Directory.Delete(sourceDir, true);
 
     Console.WriteLine($"Created archive: {tarPath}");
@@ -203,7 +220,7 @@ void PackageOSXIntel()
     string sourceDir = Path.Combine(_outputDir, OSX_X64_RID);
 
     // Create the .app directory strucgture
-    string appDir = Path.Combine(_outputDir, $"{projectName}.app");
+    string appDir = Path.Combine(_outputDir, $"{_executableFile ?? projectName}.app");
     string contentsDir = Path.Combine(appDir, "Contents");
     string macOSDir = Path.Combine(contentsDir, "MacOS");
     string resourcesDir = Path.Combine(contentsDir, "Resources");
@@ -225,6 +242,10 @@ void PackageOSXIntel()
 
     // Move the game Content directory to the resources directory
     string gameContentDir = Path.Combine(macOSDir, "Content");
+    if (Directory.Exists(contentsResourceDir))
+    {
+        Directory.Delete(contentsResourceDir, recursive: true);
+    }
     Directory.Move(gameContentDir, contentsResourceDir);
 
     // Set file as executable. Only works on Linux and mac
@@ -237,7 +258,7 @@ void PackageOSXIntel()
             Warning: Building for macOS on Windows.
             Perform the following once the archive has been extracted on macOs to make it executable:
                 1. Open a terminal in the directory where the archive was unpacked to.
-                2. Execute the command "chmod +x ./{projectName}.app/Contents/MacOS/{projectName}"
+                2. Execute the command "chmod +x ./{_executableFile ?? projectName}.app/Contents/MacOS/{_executableFile ?? projectName}"
             --------
 
             """
@@ -245,11 +266,11 @@ void PackageOSXIntel()
     }
     else
     {
-        Chmod(Path.Combine(sourceDir, projectName));
+        Chmod(Path.Combine(sourceDir, _executableFile ?? projectName));
     }
 
     // Archive using .tar.gz to retain chmod permissions
-    string tarPath = Path.Combine(_outputDir, $"{projectName}-{OSX_X64_RID}.tar.gz");
+    string tarPath = Path.Combine(_outputDir, $"{_executableFile ?? projectName}-{OSX_X64_RID}.tar.gz");
 
     if (File.Exists(tarPath))
     {
@@ -258,8 +279,8 @@ void PackageOSXIntel()
 
     using FileStream fs = new(tarPath, FileMode.Create, FileAccess.Write);
     using GZipStream gz = new(fs, CompressionMode.Compress, leaveOpen: true);
-    TarFile.CreateFromDirectory(appDir, gz, includeBaseDirectory: true);
-
+    TarDirectory(sourceDir, true, gz, _executableFile, projectName);
+    
     // Cleanup
     Directory.Delete(sourceDir, true);
 
@@ -272,7 +293,7 @@ void PackageOSXAppleSilicon()
     string sourceDir = Path.Combine(_outputDir, OSX_ARM64_RID);
 
     // Create the .app directory structure
-    string appDir = Path.Combine(_outputDir, $"{projectName}.app");
+    string appDir = Path.Combine(_outputDir, $"{_executableFile ?? projectName}.app");
     string contentsDir = Path.Combine(appDir, "Contents");
     string macOSDir = Path.Combine(contentsDir, "MacOS");
     string resourcesDir = Path.Combine(contentsDir, "Resources");
@@ -295,6 +316,10 @@ void PackageOSXAppleSilicon()
 
     // Move the game Content directory to the resources directory
     string gameContentDir = Path.Combine(macOSDir, "Content");
+    if (Directory.Exists(contentsResourceDir))
+    {
+        Directory.Delete(contentsResourceDir, recursive: true);
+    }
     Directory.Move(gameContentDir, contentsResourceDir);
 
     // Set file as executable. Only works on Linux and mac
@@ -307,7 +332,7 @@ void PackageOSXAppleSilicon()
             Warning: Building for macOS on Windows.
             Perform the following once the archive has been extracted on macOs to make it executable:
                 1. Open a terminal in the directory where the archive was unpacked to.
-                2. Execute the command "chmod +x ./{projectName}.app/Contents/MacOS/{projectName}"
+                2. Execute the command "chmod +x ./{_executableFile ?? projectName}.app/Contents/MacOS/{_executableFile ?? projectName}"
             --------
 
             """
@@ -315,11 +340,11 @@ void PackageOSXAppleSilicon()
     }
     else
     {
-        Chmod(Path.Combine(sourceDir, projectName));
+        Chmod(Path.Combine(sourceDir, _executableFile ?? projectName));
     }
 
     // Archive using .tar.gz to retain chmod permissions
-    string tarPath = Path.Combine(_outputDir, $"{projectName}-{OSX_X64_RID}.tar.gz");
+    string tarPath = Path.Combine(_outputDir, $"{_executableFile ?? projectName}-{OSX_X64_RID}.tar.gz");
 
     if (File.Exists(tarPath))
     {
@@ -328,7 +353,7 @@ void PackageOSXAppleSilicon()
 
     using FileStream fs = new(tarPath, FileMode.Create, FileAccess.Write);
     using GZipStream gz = new(fs, CompressionMode.Compress, leaveOpen: true);
-    TarFile.CreateFromDirectory(sourceDir, gz, includeBaseDirectory: false);
+    TarDirectory(sourceDir, true, gz, _executableFile, projectName);
 
     // Cleanup
     Directory.Delete(sourceDir, true);
@@ -343,7 +368,7 @@ void PackageOSXUniversal()
     string arm64SourceDir = Path.Combine(_outputDir, OSX_ARM64_RID);
 
     // Create the .app directory structure
-    string appDir = Path.Combine(_outputDir, $"{projectName}.app");
+    string appDir = Path.Combine(_outputDir, $"{_executableFile ?? projectName}.app");
     string contentsDir = Path.Combine(appDir, "Contents");
     string macOSDir = Path.Combine(contentsDir, "MacOS");
     string resourcesDir = Path.Combine(contentsDir, "Resources");
@@ -378,13 +403,17 @@ void PackageOSXUniversal()
         CopyDirectory(amd64SourceDir, macOSDir);
 
         // Combine the osx-arm64 executable using lip
-        string amd64ExecutablePath = Path.Combine(macOSDir, projectName);
-        string arm64ExecutablePath = Path.Combine(arm64SourceDir, projectName);
-        string universalExecutablePath = Path.Combine(macOSDir, projectName);
+        string amd64ExecutablePath = Path.Combine(macOSDir, _executableFile ?? projectName);
+        string arm64ExecutablePath = Path.Combine(arm64SourceDir, _executableFile ?? projectName);
+        string universalExecutablePath = Path.Combine(macOSDir, _executableFile ?? projectName);
         Lipo(amd64ExecutablePath, arm64ExecutablePath, universalExecutablePath);
 
         // Move the game Content directory to the resources directory
         string gameContentDir = Path.Combine(macOSDir, "Content");
+        if (Directory.Exists(contentsResourceDir))
+        {
+            Directory.Delete(contentsResourceDir, recursive: true);
+        }
         Directory.Move(gameContentDir, contentsResourceDir);
     }
     else
@@ -400,16 +429,16 @@ void PackageOSXUniversal()
     // executables, so we need to make an launch script instead.
     if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
     {
-        string launchScriptPath = Path.Combine(macOSDir, projectName);
+        string launchScriptPath = Path.Combine(macOSDir, _executableFile ?? projectName);
         string scriptContent =
         $"""
         #!/bin/bash
 
         cd "$(dirname $BASH_SOURCE)/../Resources"
         if [[ $(uname -p) == 'arm' ]]; then
-          ./../MacOS/arm64/{projectName}
+          ./../MacOS/arm64/{_executableFile ?? projectName}
         else
-          ./../MacOS/amd64/{projectName}
+          ./../MacOS/amd64/{_executableFile ?? projectName}
         fi
         """;
 
@@ -428,7 +457,7 @@ void PackageOSXUniversal()
             Warning: Building for macOS on Windows.
             Perform the following once the archive has been extracted on macOs to make it executable:
                 1. Open a terminal in the directory where the archive was unpacked to.
-                2. Execute the command "chmod +x ./{projectName}.app/Contents/MacOS/{projectName}"
+                2. Execute the command "chmod +x ./{_executableFile ?? projectName}.app/Contents/MacOS/{_executableFile ?? projectName}"
             --------
 
             """
@@ -436,11 +465,11 @@ void PackageOSXUniversal()
     }
     else
     {
-        Chmod(Path.Combine(macOSDir, projectName));
+        Chmod(Path.Combine(macOSDir, _executableFile ?? projectName));
     }
 
     // Archive using .tar.gz to retain chmod permissions
-    string tarPath = Path.Combine(_outputDir, $"{projectName}-universal.tar.gz");
+    string tarPath = Path.Combine(_outputDir, $"{_executableFile ?? projectName}-universal.tar.gz");
 
     if (File.Exists(tarPath))
     {
@@ -449,13 +478,56 @@ void PackageOSXUniversal()
 
     using FileStream fs = new(tarPath, FileMode.Create, FileAccess.Write);
     using GZipStream gz = new(fs, CompressionMode.Compress, leaveOpen: true);
-    TarFile.CreateFromDirectory(appDir, gz, includeBaseDirectory: true);
+    TarDirectory(appDir, true, gz, _executableFile, projectName);
 
     // Cleanup
     Directory.Delete(amd64SourceDir, true);
     Directory.Delete(arm64SourceDir, true);
 
     Console.WriteLine($"Created archive: {tarPath}");
+}
+
+// void ZipDirectory(string sourceDirectory, ZipArchive archive, params string[] executableFiles)
+// {
+//     foreach (string filePath in Directory.EnumerateFiles(sourceDirectory, "*", SearchOption.AllDirectories))
+//     {
+//         ZipArchiveEntry entry = archive.CreateEntryFromFile(filePath, Path.GetRelativePath(sourceDirectory, filePath));
+//         entry.ExternalAttributes = -1; // Set to -1 to preserve Unix file permissions
+//     }
+// }
+
+void TarDirectory(string sourceDirectory, bool includeBaseDirectory, Stream stream, params string[] executableFiles)
+{
+    using TarWriter writer = new(stream, TarEntryFormat.Pax); // Pax supports Unix permissions
+    foreach (string filePath in Directory.EnumerateFiles(sourceDirectory, "*", SearchOption.AllDirectories))
+    {
+        FileInfo fi = new(filePath);
+        if (fi.Attributes.HasFlag(FileAttributes.Hidden))
+        {
+            continue;
+        }
+        string relativePath = Path.GetRelativePath(includeBaseDirectory ? Path.Combine(sourceDirectory, "..") : sourceDirectory, filePath);
+        PaxTarEntry entry = new(TarEntryType.RegularFile, relativePath);
+
+        //Preserve Unix file permissions (if on Linux/macOS)
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            entry.Mode = File.GetUnixFileMode(filePath);
+        }
+        else
+        {
+            entry.Mode = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.GroupRead | UnixFileMode.OtherRead;// Default permissions for Windows
+            if (executableFiles.Contains(Path.GetFileName(filePath)))
+            {
+                entry.Mode |= UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
+            }
+        }
+
+        // Attach file data
+        entry.DataStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+
+        writer.WriteEntry(entry);
+    }
 }
 
 void Chmod(string filePath)
@@ -595,7 +667,13 @@ void ParseArguments()
                     _icnsPath = args[++i];
                 }
                 break;
-
+            case "-e":
+            case "--executable":
+                if (i + 1 < args.Length)
+                {
+                    _executableFile = args[++i];
+                }
+                break;
             case "-v":
             case "--verbos":
                 _verbos = true;
@@ -759,6 +837,7 @@ void DisplayHelp()
             -r --runtime-identifier <rid>   Specify target runtime identifier(s) to build for.
             -i --info-plist <path>          Path to Info.plist file (required when packaging for macOS)
             -c --icns <path>                Path to .icns file (required when packaging for macOS)
+            -e --executable <name>          Name of the executable file to set as executable
             -v --verbose                    Enable verbose output
             -h --help                       Show this help message
 

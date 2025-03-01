@@ -41,6 +41,7 @@ Options:
     -r --runtime-identifier <rid>   Specify target runtime identifier(s) to build for.
     -i --info-plist <path>          Path to Info.plist file (required when packaging for macOS)
     -c --icns <path>                Path to .icns file (required when packaging for macOS)
+    -e --executable <name>          Name of the executable file to set as executable.
     -v --verbose                    Enable verbose output
     -h --help                       Show this help message
 
@@ -62,10 +63,15 @@ Notes:
     to the Info.plist and the .icns file must be specified.  If they are not
     specified, an attempt is made to locate them in the current directory.
 
+    Use --executable if your output assembly does NOT match the `.csproj` filename. For example if you
+    have `MyGame.DesktopGL.csproj`, but you use `<AssemblyName>MyGame</AssemblyName>` in your csproj
+    you will need to pass `-e MyGame` as an argument. Otherwise the package you get will be invalid.
+
 Examples:
     monopack
     monopack -h
-    monopack -p ./src/MyGame.csproj -o ./artifacts/builds -r win-x64 -r osx-x64 -r osx-armd64 -r linux-x64 -i ./Info.plist -c ./Icon.icns
+    monopack -p ./src/MyGame.csproj -o ./artifacts/builds -r win-x64 -r osx-x64 -r osx-arm64 -r linux-x64 -i ./Info.plist -c ./Icon.icns
+    monopack -p ./src/MyGame.Desktop.csproj -e MyGame -o ./artifacts/builds -r win-x64 -r osx-x64 -r osx-arm64 -r linux-x64 -i ./Info.plist -c ./Icon.icns
 ```
 
 > [!IMPORTANT]
@@ -113,6 +119,10 @@ When packaging for macOS, it is required that you have an `Info.plist` and an Ap
     <key>CFBundleExecutable</key>
     <string>MyGame</string>
     ```
+
+If your final executable name is different from your csproj, you will need to use that
+value in the `CFBundleExecutable`. For example, if your project file is named `MyGame.DesktopGL.csproj` but your `AssemblyName` is set to `MyGame`. You will need to use
+`MyGame` in the `CFBundleExecutable` value.
 
 - **CFBundleIdentifier**: Update the string to the identifier for your game.
 
