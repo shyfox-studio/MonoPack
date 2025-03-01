@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShyFox.MonoPack.Tool.Exampl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShyFox.MonoPack.Targets.Example", "examples\ShyFox.MonoPack.Targets.Example\ShyFox.MonoPack.Targets.Example.csproj", "{F9E30F76-E82C-4063-8C15-D81456749373}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShyFox.MonoPack.Targets", "src\ShyFox.MonoPack.Targets\ShyFox.MonoPack.Targets.csproj", "{4295F1E8-B440-403F-809D-8233C726D7A1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,10 +36,15 @@ Global
 		{F9E30F76-E82C-4063-8C15-D81456749373}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F9E30F76-E82C-4063-8C15-D81456749373}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F9E30F76-E82C-4063-8C15-D81456749373}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4295F1E8-B440-403F-809D-8233C726D7A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4295F1E8-B440-403F-809D-8233C726D7A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4295F1E8-B440-403F-809D-8233C726D7A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4295F1E8-B440-403F-809D-8233C726D7A1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{922272BF-4D6C-4595-9AFD-FB21FED0E4F5} = {D9977560-6F5E-4AC9-AE6D-32063CA7092A}
 		{0EA7ECCE-722B-41A0-A35C-F3CCC5CE5B99} = {94725205-C24D-42EC-9339-317FC4673610}
 		{F9E30F76-E82C-4063-8C15-D81456749373} = {94725205-C24D-42EC-9339-317FC4673610}
+		{4295F1E8-B440-403F-809D-8233C726D7A1} = {D9977560-6F5E-4AC9-AE6D-32063CA7092A}
 	EndGlobalSection
 EndGlobal
