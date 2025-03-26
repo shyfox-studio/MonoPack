@@ -858,6 +858,7 @@ void DisplayHelp()
 
         Available runtime identifiers:
             win-x64     Windows
+            win-arm64   Windows Arm64
             linux-x64   Linux
             osx-x64     macOS 64-bit Intel
             osx-arm64   macOS Apple Silicon
