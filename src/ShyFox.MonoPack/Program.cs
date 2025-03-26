@@ -9,6 +9,7 @@ using System.IO.Compression;
 using System.Runtime.InteropServices;
 
 const string WINDOWS_RID = "win-x64";       // runtime identifier for 64-bit windows build.
+const string WINDOWS_ARM_RID = "win-arm64"; // runtime identifier for arm64-bit windows build.
 const string LINUX_RID = "linux-x64";        // runtime identifier for 64-bit linux build.
 const string OSX_X64_RID = "osx-x64";       // runtime identifier for 64-bit macOS (Intel) build.
 const string OSX_ARM64_RID = "osx-arm64";   // runtime identifier for 64-bit macOS (Apple Silicon) build.
@@ -27,6 +28,7 @@ if (Debugger.IsAttached && args.Length == 0)
         "-p", "../../../../../../examples/ShyFox.MonoPack.Tool.Example/ShyFox.MonoPack.Tool.Example.csproj",
         "-o", "./artifacts/builds",
         "-r", "win-x64",
+        "-r", "win-arm64",
         "-r", "osx-x64",
         "-r", "osx-arm64",
         "-r", "linux-x64",
@@ -49,6 +51,12 @@ try
     {
         BuildWindows();
         PackageWindows();
+    }
+
+    if (_runtimeIdentifiers.Contains(WINDOWS_ARM_RID))
+    {
+        BuildWindowsArm();
+        PackageWindows(WINDOWS_ARM_RID);
     }
 
     // Build and pacakge for macOS if specified.
@@ -93,6 +101,12 @@ void BuildWindows()
 {
     string outputDir = Path.Combine(_outputDir, WINDOWS_RID);
     Build(outputDir, WINDOWS_RID);
+}
+
+void BuildWindowsArm()
+{
+    string outputDir = Path.Combine(_outputDir, WINDOWS_ARM_RID);
+    Build(outputDir, WINDOWS_ARM_RID);
 }
 
 void BuildLinux()
@@ -157,11 +171,11 @@ void Build(string outputDir, string rid)
     process.WaitForExit();
 }
 
-void PackageWindows()
+void PackageWindows(string rid = WINDOWS_RID)
 {
     string projectName = Path.GetFileNameWithoutExtension(_projectPath);
-    string sourceDir = Path.Combine(_outputDir, WINDOWS_RID);
-    string zipPath = Path.Combine(_outputDir, $"{_executableFile ?? projectName}-{WINDOWS_RID}.zip");
+    string sourceDir = Path.Combine(_outputDir, rid);
+    string zipPath = Path.Combine(_outputDir, $"{_executableFile ?? projectName}-{rid}.zip");
 
     if (File.Exists(zipPath))
     {
@@ -730,6 +744,7 @@ void ValidateArguments()
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             _runtimeIdentifiers.Add("win-x64");
+            _runtimeIdentifiers.Add("win-arm64");
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
