@@ -201,26 +201,6 @@ void PackageLinux()
         File.Delete(tarPath);
     }
 
-    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-    {
-        Console.WriteLine(
-            $"""
-
-            --------
-            Warning: Building for Linux on Windows.
-            Perform the following once the archive has been extracted on Linux to make it executable:
-                1. Open a terminal in the directory where the archive was unpacked to.
-                2. Execute the command "chmod +x ./{_executableFile ?? projectName}"
-            --------
-
-            """
-        );
-    }
-    else
-    {
-        Chmod(Path.Combine(sourceDir, _executableFile ?? projectName));
-    }
-
     using FileStream fs = new(tarPath, FileMode.Create, FileAccess.Write);
     if (_useZip)
     {
@@ -271,27 +251,6 @@ void PackageOSXIntel()
         Directory.Delete(contentsResourceDir, recursive: true);
     }
     Directory.Move(gameContentDir, contentsResourceDir);
-
-    // Set file as executable. Only works on Linux and mac
-    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-    {
-        Console.WriteLine(
-            $"""
-
-            --------
-            Warning: Building for macOS on Windows.
-            Perform the following once the archive has been extracted on macOs to make it executable:
-                1. Open a terminal in the directory where the archive was unpacked to.
-                2. Execute the command "chmod +x ./{_executableFile ?? projectName}.app/Contents/MacOS/{_executableFile ?? projectName}"
-            --------
-
-            """
-        );
-    }
-    else
-    {
-        Chmod(Path.Combine(sourceDir, _executableFile ?? projectName));
-    }
 
     string tarPath = Path.Combine(_outputDir, $"{_executableFile ?? projectName}-{OSX_X64_RID}.{(_useZip ? "zip" : "tar.gz")}");
 
@@ -352,27 +311,6 @@ void PackageOSXAppleSilicon()
         Directory.Delete(contentsResourceDir, recursive: true);
     }
     Directory.Move(gameContentDir, contentsResourceDir);
-
-    // Set file as executable. Only works on Linux and mac
-    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-    {
-        Console.WriteLine(
-            $"""
-
-            --------
-            Warning: Building for macOS on Windows.
-            Perform the following once the archive has been extracted on macOs to make it executable:
-                1. Open a terminal in the directory where the archive was unpacked to.
-                2. Execute the command "chmod +x ./{_executableFile ?? projectName}.app/Contents/MacOS/{_executableFile ?? projectName}"
-            --------
-
-            """
-        );
-    }
-    else
-    {
-        Chmod(Path.Combine(sourceDir, _executableFile ?? projectName));
-    }
 
     string tarPath = Path.Combine(_outputDir, $"{_executableFile ?? projectName}-{OSX_X64_RID}.{(_useZip ? "zip" : "tar.gz")}");
 
@@ -483,27 +421,6 @@ void PackageOSXUniversal()
         // Replace Windows (CRLF) line endings with Unix (LF) line endings
         scriptContent = scriptContent.ReplaceLineEndings("\n");
         File.WriteAllText(launchScriptPath, scriptContent);
-    }
-
-    // Set file as executable. Only works on Linux and mac
-    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-    {
-        Console.WriteLine(
-            $"""
-
-            --------
-            Warning: Building for macOS on Windows.
-            Perform the following once the archive has been extracted on macOs to make it executable:
-                1. Open a terminal in the directory where the archive was unpacked to.
-                2. Execute the command "chmod +x ./{_executableFile ?? projectName}.app/Contents/MacOS/{_executableFile ?? projectName}"
-            --------
-
-            """
-        );
-    }
-    else
-    {
-        Chmod(Path.Combine(macOSDir, _executableFile ?? projectName));
     }
 
     string tarPath = Path.Combine(_outputDir, $"{_executableFile ?? projectName}-universal.{(_useZip ? "zip" : "tar.gz")}");
