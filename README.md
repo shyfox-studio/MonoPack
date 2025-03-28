@@ -42,6 +42,7 @@ Options:
     -i --info-plist <path>          Path to Info.plist file (required when packaging for macOS)
     -c --icns <path>                Path to .icns file (required when packaging for macOS)
     -e --executable <name>          Name of the executable file to set as executable.
+    -z --zip                        Use zip for packaging instead of tar.gz (only for Linux and MacOS)
     -v --verbose                    Enable verbose output
     -h --help                       Show this help message
 
