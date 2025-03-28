@@ -20,6 +20,7 @@ List<string> _runtimeIdentifiers = new();   // The runtime identifiers to build 
 string _infoPlistPath = string.Empty;       // Path to the Info.plist file (required for macOS).
 string _icnsPath = string.Empty;            // Path to the Apple Icon (.icns) file (required for macOS).
 string _executableFile = null;              // The name of the executable files to set as executable.
+bool _useZip = false;                       // Indicates whether to use zip for packaging. Defaults to tar.gz.
 bool _verbos = false;                       // Indicates whether verbose output is enabled.
 
 if (Debugger.IsAttached && args.Length == 0)
@@ -35,6 +36,7 @@ if (Debugger.IsAttached && args.Length == 0)
         "-i", "../../../../../../examples/ShyFox.MonoPack.Tool.Example/Info.plist",
         "-c", "../../../../../../examples/ShyFox.MonoPack.Tool.Example/Icon.icns",
         "-e", "ExampleGame",
+        "-z",
         "-v"
     ];
 }
@@ -192,7 +194,7 @@ void PackageLinux()
 {
     string projectName = Path.GetFileNameWithoutExtension(_projectPath);
     string sourceDir = Path.Combine(_outputDir, LINUX_RID);
-    string tarPath = Path.Combine(_outputDir, $"{_executableFile ?? projectName}-{LINUX_RID}.tar.gz");
+    string tarPath = Path.Combine(_outputDir, $"{_executableFile ?? projectName}-{LINUX_RID}.{(_useZip ? "zip" : "tar.gz")}");
 
     if (File.Exists(tarPath))
     {
@@ -220,8 +222,16 @@ void PackageLinux()
     }
 
     using FileStream fs = new(tarPath, FileMode.Create, FileAccess.Write);
-    using GZipStream gz = new(fs, CompressionMode.Compress, leaveOpen: true);
-    TarDirectory(sourceDir, false, gz, _executableFile, projectName);
+    if (_useZip)
+    {
+        using ZipArchive zip = new(fs, ZipArchiveMode.Create, leaveOpen: true);
+        ZipDirectory(sourceDir, zip, _executableFile, projectName);
+    }
+    else
+    {
+        using GZipStream gz = new(fs, CompressionMode.Compress, leaveOpen: true);
+        TarDirectory(sourceDir, false, gz, _executableFile, projectName);
+    }
     
     Directory.Delete(sourceDir, true);
 
@@ -283,8 +293,7 @@ void PackageOSXIntel()
         Chmod(Path.Combine(sourceDir, _executableFile ?? projectName));
     }
 
-    // Archive using .tar.gz to retain chmod permissions
-    string tarPath = Path.Combine(_outputDir, $"{_executableFile ?? projectName}-{OSX_X64_RID}.tar.gz");
+    string tarPath = Path.Combine(_outputDir, $"{_executableFile ?? projectName}-{OSX_X64_RID}.{(_useZip ? "zip" : "tar.gz")}");
 
     if (File.Exists(tarPath))
     {
@@ -292,8 +301,16 @@ void PackageOSXIntel()
     }
 
     using FileStream fs = new(tarPath, FileMode.Create, FileAccess.Write);
-    using GZipStream gz = new(fs, CompressionMode.Compress, leaveOpen: true);
-    TarDirectory(sourceDir, true, gz, _executableFile, projectName);
+    if (_useZip)
+    {
+        using ZipArchive zip = new(fs, ZipArchiveMode.Create, leaveOpen: true);
+        ZipDirectory(sourceDir, zip, _executableFile, projectName);
+    }
+    else
+    {
+        using GZipStream gz = new(fs, CompressionMode.Compress, leaveOpen: true);
+        TarDirectory(sourceDir, false, gz, _executableFile, projectName);
+    }
     
     // Cleanup
     Directory.Delete(sourceDir, true);
@@ -357,8 +374,7 @@ void PackageOSXAppleSilicon()
         Chmod(Path.Combine(sourceDir, _executableFile ?? projectName));
     }
 
-    // Archive using .tar.gz to retain chmod permissions
-    string tarPath = Path.Combine(_outputDir, $"{_executableFile ?? projectName}-{OSX_X64_RID}.tar.gz");
+    string tarPath = Path.Combine(_outputDir, $"{_executableFile ?? projectName}-{OSX_X64_RID}.{(_useZip ? "zip" : "tar.gz")}");
 
     if (File.Exists(tarPath))
     {
@@ -366,8 +382,16 @@ void PackageOSXAppleSilicon()
     }
 
     using FileStream fs = new(tarPath, FileMode.Create, FileAccess.Write);
-    using GZipStream gz = new(fs, CompressionMode.Compress, leaveOpen: true);
-    TarDirectory(sourceDir, true, gz, _executableFile, projectName);
+    if (_useZip)
+    {
+        using ZipArchive zip = new(fs, ZipArchiveMode.Create, leaveOpen: true);
+        ZipDirectory(sourceDir, zip, _executableFile, projectName);
+    }
+    else
+    {
+        using GZipStream gz = new(fs, CompressionMode.Compress, leaveOpen: true);
+        TarDirectory(sourceDir, true, gz, _executableFile, projectName);
+    }
 
     // Cleanup
     Directory.Delete(sourceDir, true);
@@ -482,8 +506,7 @@ void PackageOSXUniversal()
         Chmod(Path.Combine(macOSDir, _executableFile ?? projectName));
     }
 
-    // Archive using .tar.gz to retain chmod permissions
-    string tarPath = Path.Combine(_outputDir, $"{_executableFile ?? projectName}-universal.tar.gz");
+    string tarPath = Path.Combine(_outputDir, $"{_executableFile ?? projectName}-universal.{(_useZip ? "zip" : "tar.gz")}");
 
     if (File.Exists(tarPath))
     {
@@ -491,8 +514,16 @@ void PackageOSXUniversal()
     }
 
     using FileStream fs = new(tarPath, FileMode.Create, FileAccess.Write);
-    using GZipStream gz = new(fs, CompressionMode.Compress, leaveOpen: true);
-    TarDirectory(appDir, true, gz, _executableFile, projectName);
+    if (_useZip)
+    {
+        using ZipArchive zip = new(fs, ZipArchiveMode.Create, leaveOpen: true);
+        ZipDirectory(appDir, zip, _executableFile, projectName);
+    }
+    else
+    {
+        using GZipStream gz = new(fs, CompressionMode.Compress, leaveOpen: true);
+        TarDirectory(appDir, true, gz, _executableFile, projectName);
+    }
 
     // Cleanup
     Directory.Delete(amd64SourceDir, true);
@@ -501,14 +532,27 @@ void PackageOSXUniversal()
     Console.WriteLine($"Created archive: {tarPath}");
 }
 
-// void ZipDirectory(string sourceDirectory, ZipArchive archive, params string[] executableFiles)
-// {
-//     foreach (string filePath in Directory.EnumerateFiles(sourceDirectory, "*", SearchOption.AllDirectories))
-//     {
-//         ZipArchiveEntry entry = archive.CreateEntryFromFile(filePath, Path.GetRelativePath(sourceDirectory, filePath));
-//         entry.ExternalAttributes = -1; // Set to -1 to preserve Unix file permissions
-//     }
-// }
+void ZipDirectory(string sourceDirectory, ZipArchive archive, params string[] executableFiles)
+{
+    foreach (string filePath in Directory.EnumerateFiles(sourceDirectory, "*", SearchOption.AllDirectories))
+    {
+        ZipArchiveEntry entry = archive.CreateEntryFromFile(filePath, Path.GetRelativePath(sourceDirectory, filePath));
+        UnixFileMode permissions = UnixFileMode.None;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            permissions = File.GetUnixFileMode(filePath);
+        }
+        else 
+        {
+            permissions = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.GroupRead | UnixFileMode.OtherRead;// Default permissions for Windows
+            if (executableFiles.Contains(Path.GetFileName(Path.GetFileNameWithoutExtension(filePath))))
+            {
+                permissions |= UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
+            }
+        }
+        entry.ExternalAttributes = (int)permissions << 16; // Set Unix file permissions
+    }
+}
 
 void TarDirectory(string sourceDirectory, bool includeBaseDirectory, Stream stream, params string[] executableFiles)
 {
@@ -688,6 +732,10 @@ void ParseArguments()
                     _executableFile = args[++i];
                 }
                 break;
+            case "-z":
+            case "--zip":
+                _useZip = true;
+                break;
             case "-v":
             case "--verbos":
                 _verbos = true;
@@ -853,6 +901,7 @@ void DisplayHelp()
             -i --info-plist <path>          Path to Info.plist file (required when packaging for macOS)
             -c --icns <path>                Path to .icns file (required when packaging for macOS)
             -e --executable <name>          Name of the executable file to set as executable
+            -z --zip                        Use zip for packaging instead of tar.gz (only for Linux and MacOS)
             -v --verbose                    Enable verbose output
             -h --help                       Show this help message
 
