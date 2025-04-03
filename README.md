@@ -42,6 +42,7 @@ Options:
     -i --info-plist <path>          Path to Info.plist file (required when packaging for macOS)
     -c --icns <path>                Path to .icns file (required when packaging for macOS)
     -e --executable <name>          Name of the executable file to set as executable.
+    -z --zip                        Use zip for packaging instead of tar.gz (only for Linux and MacOS)
     -v --verbose                    Enable verbose output
     -h --help                       Show this help message
 
@@ -83,30 +84,6 @@ Examples:
 > If both are specified, then a universal build will be created.
 >
 > When executing just `monopack` on a macOS, a universal build is selected by default.
-
-> [!IMPORTANT]
-> If you are packaging for Linux or macOS from Windows, a message will be output in the console to inform you that you will need to manually apply the executable permissions on the Linux or macOS system once the archive is extracted to them.
->
-> ```sh
-> --------
-> Warning: Building for Linux on Windows.
-> Perform the following once the archive has been extracted on Linux to make it executable:
->    1. Open a terminal in the directory where the archive was unpacked to.
->    2. Execute the command "chmod +x ./ExampleGame"
->--------
-> ```
->
-> ```sh
-> --------
-> Warning: Building for macOS on Windows.
-> Perform the following once the archive has been extracted on macOs to make it executable:
->    1. Open a terminal in the directory where the archive was unpacked to.
->    2. Execute the command "chmod +x ./ExampleGame.app/Contents/MacOS/ExampleGame"
-> --------
-> ```
->
-> This is because Windows does not have an equivalent of `chmod` or the concept of a file being executable or not, so that file attribute cannot be set on a Windows system.
->
 > When possible, you should package them on their intended system, such as through GitHub Actions if you don't have access to them yourself.
 
 ## Required Files for macOS
