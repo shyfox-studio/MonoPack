@@ -212,7 +212,7 @@ void PackageLinux()
         using GZipStream gz = new(fs, CompressionMode.Compress, leaveOpen: true);
         TarDirectory(sourceDir, false, gz, _executableFile, projectName);
     }
-    
+
     Directory.Delete(sourceDir, true);
 
     Console.WriteLine($"Created archive: {tarPath}");
@@ -270,7 +270,7 @@ void PackageOSXIntel()
         using GZipStream gz = new(fs, CompressionMode.Compress, leaveOpen: true);
         TarDirectory(sourceDir, false, gz, _executableFile, projectName);
     }
-    
+
     // Cleanup
     Directory.Delete(sourceDir, true);
 
@@ -459,7 +459,7 @@ void ZipDirectory(string sourceDirectory, ZipArchive archive, params string[] ex
         {
             permissions = File.GetUnixFileMode(filePath);
         }
-        else 
+        else
         {
             permissions = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.GroupRead | UnixFileMode.OtherRead;// Default permissions for Windows
             if (executableFiles.Contains(Path.GetFileName(Path.GetFileNameWithoutExtension(filePath))))
@@ -503,42 +503,6 @@ void TarDirectory(string sourceDirectory, bool includeBaseDirectory, Stream stre
 
         writer.WriteEntry(entry);
     }
-}
-
-void Chmod(string filePath)
-{
-    ProcessStartInfo startInfo = new()
-    {
-        FileName = "chmod",
-        Arguments = $"+x {filePath}",
-        RedirectStandardOutput = true,
-        RedirectStandardError = true,
-        UseShellExecute = false,
-        CreateNoWindow = true
-    };
-
-    using Process process = new() { StartInfo = startInfo };
-
-    process.OutputDataReceived += (sender, args) =>
-    {
-        if (args.Data is not null && _verbos)
-        {
-            Console.WriteLine(args.Data);
-        }
-    };
-
-    process.ErrorDataReceived += (sender, args) =>
-    {
-        if (args.Data is not null && _verbos)
-        {
-            Console.WriteLine(args.Data);
-        }
-    };
-
-    process.Start();
-    process.BeginOutputReadLine();
-    process.BeginErrorReadLine();
-    process.WaitForExit();
 }
 
 void Lipo(string source1, string source2, string destination)
