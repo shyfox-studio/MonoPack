@@ -204,7 +204,7 @@ void PackageLinux()
     if (_useZip)
     {
         using ZipArchive zip = new(fs, ZipArchiveMode.Create, leaveOpen: true);
-        ZipDirectory(sourceDir, zip, _executableFile, projectName);
+        ZipDirectory(sourceDir, false, zip, _executableFile, projectName);
     }
     else
     {
@@ -262,7 +262,7 @@ void PackageOSXIntel()
     if (_useZip)
     {
         using ZipArchive zip = new(fs, ZipArchiveMode.Create, leaveOpen: true);
-        ZipDirectory(appDir, zip, _executableFile, projectName);
+        ZipDirectory(appDir, true, zip, _executableFile, projectName);
     }
     else
     {
@@ -322,7 +322,7 @@ void PackageOSXAppleSilicon()
     if (_useZip)
     {
         using ZipArchive zip = new(fs, ZipArchiveMode.Create, leaveOpen: true);
-        ZipDirectory(appDir, zip, _executableFile, projectName);
+        ZipDirectory(appDir, true, zip, _executableFile, projectName);
     }
     else
     {
@@ -451,7 +451,7 @@ void PackageOSXUniversal()
     if (_useZip)
     {
         using ZipArchive zip = new(fs, ZipArchiveMode.Create, leaveOpen: true);
-        ZipDirectory(appDir, zip, _executableFile, projectName);
+        ZipDirectory(appDir, true, zip, _executableFile, projectName);
     }
     else
     {
@@ -466,16 +466,17 @@ void PackageOSXUniversal()
     Console.WriteLine($"Created archive: {tarPath}");
 }
 
-void ZipDirectory(string sourceDirectory, ZipArchive archive, params string[] executableFiles)
+void ZipDirectory(string sourceDirectory, bool includeBaseDirectory, ZipArchive archive, params string[] executableFiles)
 {
+    string sourceDir = includeBaseDirectory ? Path.Combine(sourceDirectory, "..") : sourceDirectory;
     foreach (string filePath in Directory.EnumerateFiles(sourceDirectory, "*", SearchOption.AllDirectories))
     {
-        ZipArchiveEntry entry = archive.CreateEntryFromFile(filePath, Path.GetRelativePath(Path.Combine(sourceDirectory, ".."), filePath));
+        ZipArchiveEntry entry = archive.CreateEntryFromFile(filePath, Path.GetRelativePath(sourceDir, filePath));
         UnixFileMode permissions = UnixFileMode.None;
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
             permissions = File.GetUnixFileMode(filePath);
-            if (string.IsNullOrEmpty(Path.GetExtension (filePath)) && executableFiles.Contains(Path.GetFileName(Path.GetFileNameWithoutExtension(filePath))))
+            if (string.IsNullOrEmpty(Path.GetExtension(filePath)) && executableFiles.Contains(Path.GetFileName(Path.GetFileNameWithoutExtension(filePath))))
             {
                 permissions |= UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
             }
@@ -483,7 +484,7 @@ void ZipDirectory(string sourceDirectory, ZipArchive archive, params string[] ex
         else
         {
             permissions = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.GroupRead | UnixFileMode.OtherRead;// Default permissions for Windows
-            if (string.IsNullOrEmpty(Path.GetExtension (filePath)) && executableFiles.Contains(Path.GetFileName(Path.GetFileNameWithoutExtension(filePath))))
+            if (string.IsNullOrEmpty(Path.GetExtension(filePath)) && executableFiles.Contains(Path.GetFileName(Path.GetFileNameWithoutExtension(filePath))))
             {
                 permissions |= UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
             }
