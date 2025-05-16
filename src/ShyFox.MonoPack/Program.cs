@@ -27,16 +27,15 @@ if (Debugger.IsAttached && args.Length == 0)
 {
     args = [
         "-p", "../../../../../../examples/ShyFox.MonoPack.Tool.Example/ShyFox.MonoPack.Tool.Example.csproj",
-        "-o", "./artifacts/builds",
-        "-r", "win-x64",
+        "-e", "ExampleGame",
         "-r", "win-arm64",
-        "-r", "osx-x64",
-        "-r", "osx-arm64",
         "-r", "linux-x64",
+        "-r", "osx-arm64",
+        "-r", "osx-x64",
         "-i", "../../../../../../examples/ShyFox.MonoPack.Tool.Example/Info.plist",
         "-c", "../../../../../../examples/ShyFox.MonoPack.Tool.Example/Icon.icns",
-        "-e", "ExampleGame",
         "-z",
+        "-o", "./artifacts/builds",
         "-v"
     ];
 }
@@ -263,12 +262,12 @@ void PackageOSXIntel()
     if (_useZip)
     {
         using ZipArchive zip = new(fs, ZipArchiveMode.Create, leaveOpen: true);
-        ZipDirectory(sourceDir, zip, _executableFile, projectName);
+        ZipDirectory(appDir, zip, _executableFile, projectName);
     }
     else
     {
         using GZipStream gz = new(fs, CompressionMode.Compress, leaveOpen: true);
-        TarDirectory(sourceDir, false, gz, _executableFile, projectName);
+        TarDirectory(appDir, false, gz, _executableFile, projectName);
     }
 
     // Cleanup
@@ -312,7 +311,7 @@ void PackageOSXAppleSilicon()
     }
     Directory.Move(gameContentDir, contentsResourceDir);
 
-    string tarPath = Path.Combine(_outputDir, $"{_executableFile ?? projectName}-{OSX_X64_RID}.{(_useZip ? "zip" : "tar.gz")}");
+    string tarPath = Path.Combine(_outputDir, $"{_executableFile ?? projectName}-{OSX_ARM64_RID}.{(_useZip ? "zip" : "tar.gz")}");
 
     if (File.Exists(tarPath))
     {
@@ -323,12 +322,12 @@ void PackageOSXAppleSilicon()
     if (_useZip)
     {
         using ZipArchive zip = new(fs, ZipArchiveMode.Create, leaveOpen: true);
-        ZipDirectory(sourceDir, zip, _executableFile, projectName);
+        ZipDirectory(appDir, zip, _executableFile, projectName);
     }
     else
     {
         using GZipStream gz = new(fs, CompressionMode.Compress, leaveOpen: true);
-        TarDirectory(sourceDir, true, gz, _executableFile, projectName);
+        TarDirectory(appDir, true, gz, _executableFile, projectName);
     }
 
     // Cleanup
@@ -396,9 +395,27 @@ void PackageOSXUniversal()
     {
         // Copy the osx-amd64 files
         CopyDirectory(amd64SourceDir, amd64Dir);
+        string unusedContentDir = Path.Combine(amd64Dir, "Content");
+        if (Directory.Exists(unusedContentDir))
+        {
+            Directory.Delete(unusedContentDir, recursive: true);
+        }
 
         // Copy the osx-arm64 files
         CopyDirectory(arm64SourceDir, arm64Dir);
+        unusedContentDir = Path.Combine(arm64Dir, "Content");
+        if (Directory.Exists(unusedContentDir))
+        {
+            Directory.Delete(unusedContentDir, recursive: true);
+        }
+
+        // Move the game Content directory to the resources directory
+        string gameContentDir = Path.Combine(arm64SourceDir, "Content");
+        if (Directory.Exists(contentsResourceDir))
+        {
+            Directory.Delete(contentsResourceDir, recursive: true);
+        }
+        Directory.Move(gameContentDir, contentsResourceDir);
     }
 
     // If not running on macOS, then we couldn't use lipo to combine the
@@ -453,16 +470,20 @@ void ZipDirectory(string sourceDirectory, ZipArchive archive, params string[] ex
 {
     foreach (string filePath in Directory.EnumerateFiles(sourceDirectory, "*", SearchOption.AllDirectories))
     {
-        ZipArchiveEntry entry = archive.CreateEntryFromFile(filePath, Path.GetRelativePath(sourceDirectory, filePath));
+        ZipArchiveEntry entry = archive.CreateEntryFromFile(filePath, Path.GetRelativePath(Path.Combine(sourceDirectory, ".."), filePath));
         UnixFileMode permissions = UnixFileMode.None;
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
             permissions = File.GetUnixFileMode(filePath);
+            if (string.IsNullOrEmpty(Path.GetExtension (filePath)) && executableFiles.Contains(Path.GetFileName(Path.GetFileNameWithoutExtension(filePath))))
+            {
+                permissions |= UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
+            }
         }
         else
         {
             permissions = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.GroupRead | UnixFileMode.OtherRead;// Default permissions for Windows
-            if (executableFiles.Contains(Path.GetFileName(Path.GetFileNameWithoutExtension(filePath))))
+            if (string.IsNullOrEmpty(Path.GetExtension (filePath)) && executableFiles.Contains(Path.GetFileName(Path.GetFileNameWithoutExtension(filePath))))
             {
                 permissions |= UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
             }
@@ -488,11 +509,15 @@ void TarDirectory(string sourceDirectory, bool includeBaseDirectory, Stream stre
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
             entry.Mode = File.GetUnixFileMode(filePath);
+            if (string.IsNullOrEmpty(Path.GetExtension (filePath)) && executableFiles.Contains(Path.GetFileName(Path.GetFileNameWithoutExtension(filePath))))
+            {
+                entry.Mode |= UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
+            }
         }
         else
         {
             entry.Mode = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.GroupRead | UnixFileMode.OtherRead;// Default permissions for Windows
-            if (executableFiles.Contains(Path.GetFileName(Path.GetFileNameWithoutExtension(filePath))))
+            if (string.IsNullOrEmpty(Path.GetExtension (filePath)) && executableFiles.Contains(Path.GetFileName(Path.GetFileNameWithoutExtension(filePath))))
             {
                 entry.Mode |= UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
             }
