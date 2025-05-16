@@ -27,16 +27,15 @@ if (Debugger.IsAttached && args.Length == 0)
 {
     args = [
         "-p", "../../../../../../examples/ShyFox.MonoPack.Tool.Example/ShyFox.MonoPack.Tool.Example.csproj",
-        "-o", "./artifacts/builds",
-        "-r", "win-x64",
+        "-e", "ExampleGame",
         "-r", "win-arm64",
-        "-r", "osx-x64",
-        "-r", "osx-arm64",
         "-r", "linux-x64",
+        "-r", "osx-arm64",
+        "-r", "osx-x64",
         "-i", "../../../../../../examples/ShyFox.MonoPack.Tool.Example/Info.plist",
         "-c", "../../../../../../examples/ShyFox.MonoPack.Tool.Example/Icon.icns",
-        "-e", "ExampleGame",
         "-z",
+        "-o", "./artifacts/builds",
         "-v"
     ];
 }
@@ -185,7 +184,7 @@ void PackageWindows(string rid = WINDOWS_RID)
     }
 
     ZipFile.CreateFromDirectory(sourceDir, zipPath);
-    Directory.Delete(sourceDir, true);
+    DeleteDirectory(sourceDir, true);
 
     Console.WriteLine($"Created archive: {zipPath}");
 }
@@ -205,7 +204,7 @@ void PackageLinux()
     if (_useZip)
     {
         using ZipArchive zip = new(fs, ZipArchiveMode.Create, leaveOpen: true);
-        ZipDirectory(sourceDir, zip, _executableFile, projectName);
+        ZipDirectory(sourceDir, false, zip, _executableFile, projectName);
     }
     else
     {
@@ -213,7 +212,7 @@ void PackageLinux()
         TarDirectory(sourceDir, false, gz, _executableFile, projectName);
     }
 
-    Directory.Delete(sourceDir, true);
+    DeleteDirectory(sourceDir, true);
 
     Console.WriteLine($"Created archive: {tarPath}");
 }
@@ -248,7 +247,7 @@ void PackageOSXIntel()
     string gameContentDir = Path.Combine(macOSDir, "Content");
     if (Directory.Exists(contentsResourceDir))
     {
-        Directory.Delete(contentsResourceDir, recursive: true);
+        DeleteDirectory(contentsResourceDir, recursive: true);
     }
     Directory.Move(gameContentDir, contentsResourceDir);
 
@@ -263,16 +262,16 @@ void PackageOSXIntel()
     if (_useZip)
     {
         using ZipArchive zip = new(fs, ZipArchiveMode.Create, leaveOpen: true);
-        ZipDirectory(sourceDir, zip, _executableFile, projectName);
+        ZipDirectory(appDir, true, zip, _executableFile, projectName);
     }
     else
     {
         using GZipStream gz = new(fs, CompressionMode.Compress, leaveOpen: true);
-        TarDirectory(sourceDir, false, gz, _executableFile, projectName);
+        TarDirectory(appDir, false, gz, _executableFile, projectName);
     }
 
     // Cleanup
-    Directory.Delete(sourceDir, true);
+    DeleteDirectory(sourceDir, true);
 
     Console.WriteLine($"Created archive: {tarPath}");
 }
@@ -308,11 +307,11 @@ void PackageOSXAppleSilicon()
     string gameContentDir = Path.Combine(macOSDir, "Content");
     if (Directory.Exists(contentsResourceDir))
     {
-        Directory.Delete(contentsResourceDir, recursive: true);
+        DeleteDirectory(contentsResourceDir, recursive: true);
     }
     Directory.Move(gameContentDir, contentsResourceDir);
 
-    string tarPath = Path.Combine(_outputDir, $"{_executableFile ?? projectName}-{OSX_X64_RID}.{(_useZip ? "zip" : "tar.gz")}");
+    string tarPath = Path.Combine(_outputDir, $"{_executableFile ?? projectName}-{OSX_ARM64_RID}.{(_useZip ? "zip" : "tar.gz")}");
 
     if (File.Exists(tarPath))
     {
@@ -323,16 +322,16 @@ void PackageOSXAppleSilicon()
     if (_useZip)
     {
         using ZipArchive zip = new(fs, ZipArchiveMode.Create, leaveOpen: true);
-        ZipDirectory(sourceDir, zip, _executableFile, projectName);
+        ZipDirectory(appDir, true, zip, _executableFile, projectName);
     }
     else
     {
         using GZipStream gz = new(fs, CompressionMode.Compress, leaveOpen: true);
-        TarDirectory(sourceDir, true, gz, _executableFile, projectName);
+        TarDirectory(appDir, true, gz, _executableFile, projectName);
     }
 
     // Cleanup
-    Directory.Delete(sourceDir, true);
+    DeleteDirectory(sourceDir, true);
 
     Console.WriteLine($"Created archive: {tarPath}");
 }
@@ -388,7 +387,7 @@ void PackageOSXUniversal()
         string gameContentDir = Path.Combine(macOSDir, "Content");
         if (Directory.Exists(contentsResourceDir))
         {
-            Directory.Delete(contentsResourceDir, recursive: true);
+            DeleteDirectory(contentsResourceDir, recursive: true);
         }
         Directory.Move(gameContentDir, contentsResourceDir);
     }
@@ -396,9 +395,27 @@ void PackageOSXUniversal()
     {
         // Copy the osx-amd64 files
         CopyDirectory(amd64SourceDir, amd64Dir);
+        string unusedContentDir = Path.Combine(amd64Dir, "Content");
+        if (Directory.Exists(unusedContentDir))
+        {
+            DeleteDirectory(unusedContentDir, recursive: true);
+        }
 
         // Copy the osx-arm64 files
         CopyDirectory(arm64SourceDir, arm64Dir);
+        unusedContentDir = Path.Combine(arm64Dir, "Content");
+        if (Directory.Exists(unusedContentDir))
+        {
+            DeleteDirectory(unusedContentDir, recursive: true);
+        }
+
+        // Move the game Content directory to the resources directory
+        string gameContentDir = Path.Combine(arm64SourceDir, "Content");
+        if (Directory.Exists(contentsResourceDir))
+        {
+            DeleteDirectory(contentsResourceDir, recursive: true);
+        }
+        Directory.Move(gameContentDir, contentsResourceDir);
     }
 
     // If not running on macOS, then we couldn't use lipo to combine the
@@ -434,35 +451,40 @@ void PackageOSXUniversal()
     if (_useZip)
     {
         using ZipArchive zip = new(fs, ZipArchiveMode.Create, leaveOpen: true);
-        ZipDirectory(appDir, zip, _executableFile, projectName);
+        ZipDirectory(appDir, true, zip, _executableFile ?? projectName);
     }
     else
     {
         using GZipStream gz = new(fs, CompressionMode.Compress, leaveOpen: true);
-        TarDirectory(appDir, true, gz, _executableFile, projectName);
+        TarDirectory(appDir, true, gz, _executableFile ?? projectName);
     }
 
     // Cleanup
-    Directory.Delete(amd64SourceDir, true);
-    Directory.Delete(arm64SourceDir, true);
+    DeleteDirectory(amd64SourceDir, true);
+    DeleteDirectory(arm64SourceDir, true);
 
     Console.WriteLine($"Created archive: {tarPath}");
 }
 
-void ZipDirectory(string sourceDirectory, ZipArchive archive, params string[] executableFiles)
+void ZipDirectory(string sourceDirectory, bool includeBaseDirectory, ZipArchive archive, params string[] executableFiles)
 {
+    string sourceDir = includeBaseDirectory ? Path.Combine(sourceDirectory, "..") : sourceDirectory;
     foreach (string filePath in Directory.EnumerateFiles(sourceDirectory, "*", SearchOption.AllDirectories))
     {
-        ZipArchiveEntry entry = archive.CreateEntryFromFile(filePath, Path.GetRelativePath(sourceDirectory, filePath));
+        ZipArchiveEntry entry = archive.CreateEntryFromFile(filePath, Path.GetRelativePath(sourceDir, filePath));
         UnixFileMode permissions = UnixFileMode.None;
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
             permissions = File.GetUnixFileMode(filePath);
+            if (executableFiles.Contains(Path.GetFileName(Path.GetFileName(filePath))))
+            {
+                permissions |= UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
+            }
         }
         else
         {
             permissions = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.GroupRead | UnixFileMode.OtherRead;// Default permissions for Windows
-            if (executableFiles.Contains(Path.GetFileName(Path.GetFileNameWithoutExtension(filePath))))
+            if (executableFiles.Contains(Path.GetFileName(Path.GetFileName(filePath))))
             {
                 permissions |= UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
             }
@@ -488,11 +510,15 @@ void TarDirectory(string sourceDirectory, bool includeBaseDirectory, Stream stre
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
             entry.Mode = File.GetUnixFileMode(filePath);
+            if (executableFiles.Contains(Path.GetFileName(filePath)))
+            {
+                entry.Mode |= UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
+            }
         }
         else
         {
             entry.Mode = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.GroupRead | UnixFileMode.OtherRead;// Default permissions for Windows
-            if (executableFiles.Contains(Path.GetFileName(Path.GetFileNameWithoutExtension(filePath))))
+            if (executableFiles.Contains(Path.GetFileName(Path.GetFileName(filePath))))
             {
                 entry.Mode |= UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
             }
@@ -539,6 +565,22 @@ void Lipo(string source1, string source2, string destination)
     process.BeginOutputReadLine();
     process.BeginErrorReadLine();
     process.WaitForExit();
+}
+
+void DeleteDirectory(string path, bool recursive = false)
+{
+    while (Directory.Exists(path))
+    {
+        try
+        {
+            Directory.Delete(path, recursive);
+        }
+        catch (IOException)
+        {
+            Thread.Sleep(100);
+            continue;
+        }
+    }
 }
 
 void CopyDirectory(string sourceDir, string targetDir)
@@ -588,6 +630,16 @@ void ParseArguments()
                 {
                     string rid = args[++i];
                     _runtimeIdentifiers.Add(rid);
+                }
+                break;
+            case "-rids":
+                if (i + 1 < args.Length)
+                {
+                    string[] rids = args[++i].Split(',');
+                    foreach (string rid in rids)
+                    {
+                        _runtimeIdentifiers.Add(rid);
+                    }
                 }
                 break;
 
@@ -779,6 +831,7 @@ void DisplayHelp()
             -p --project <path>             Path to the .csproj file (optional if only one .csproj in current directory)
             -o --output <dir>               Output directory (default: [project]/bin/Packed)
             -r --runtime-identifier <rid>   Specify target runtime identifier(s) to build for.
+            -rids <rids>                    Comma separated list of runtime identifiers to build for (e.g --rids win-x64,linux-x64)
             -i --info-plist <path>          Path to Info.plist file (required when packaging for macOS)
             -c --icns <path>                Path to .icns file (required when packaging for macOS)
             -e --executable <name>          Name of the executable file to set as executable
@@ -809,6 +862,7 @@ void DisplayHelp()
             monopack
             monopack -h
             monopack -p ./src/MyGame.csproj -o ./artifacts/builds -r win-x64 -r osx-x64 -r osx-armd64 -r linux-x64 -i ./Info.plist -c ./Icon.icns
+            monopack -p ./src/MyGame.csproj -o ./artifacts/builds -rids win-x64,osx-x64,osx-armd64,linux-x64 -i ./Info.plist -c ./Icon.icns
         """
     );
 }
