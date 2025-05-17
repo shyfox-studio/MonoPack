@@ -26,6 +26,10 @@ jobs:
                 
         - name: Restore dependencies
           run: dotnet restore
+        
+        - name: Restore Tools
+          run: dotnet tool restore
+          working-directory: examples/ShyFox.MonoPack.Tool.Example
             
         - name: Build
           run: dotnet build --no-restore -c Release -tl:off -v:diag
