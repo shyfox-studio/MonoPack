@@ -28,7 +28,7 @@ jobs:
           run: dotnet restore
             
         - name: Build
-          run: dotnet build --no-restore -c Release
+          run: dotnet build --no-restore -c Release -tl:off -v:diag
             
         - name: Test
           run: .artifacts/bin/source/ShyFox.MonoPack/Release/net8.0/ShyFox.MonoPack -p examples/ShyFox.MonoPack.Tool.Example/ShyFox.MonoPack.Tool.Example.csproj -o ./artifacts/builds -e ExampleProject -r win-arm64 -r win-x64 -r linux-x64 -r osx-arm64 -r osx-x64 -i examples/ShyFox.MonoPack.Tool.Example/Info.plist -c examples/ShyFox.MonoPack.Tool.Example/Icon.icns -v
