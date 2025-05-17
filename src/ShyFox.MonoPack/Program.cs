@@ -184,7 +184,7 @@ void PackageWindows(string rid = WINDOWS_RID)
     }
 
     ZipFile.CreateFromDirectory(sourceDir, zipPath);
-    Directory.Delete(sourceDir, true);
+    DeleteDirectory(sourceDir, true);
 
     Console.WriteLine($"Created archive: {zipPath}");
 }
@@ -212,18 +212,7 @@ void PackageLinux()
         TarDirectory(sourceDir, false, gz, _executableFile, projectName);
     }
 
-    while (Directory.Exists(sourceDir))
-    {
-        try
-        {
-            Directory.Delete(sourceDir, true);
-            Thread.Sleep(100);
-        }
-        catch (IOException)
-        {
-            continue;
-        }
-    }
+    DeleteDirectory(sourceDir, true);
 
     Console.WriteLine($"Created archive: {tarPath}");
 }
@@ -258,7 +247,7 @@ void PackageOSXIntel()
     string gameContentDir = Path.Combine(macOSDir, "Content");
     if (Directory.Exists(contentsResourceDir))
     {
-        Directory.Delete(contentsResourceDir, recursive: true);
+        DeleteDirectory(contentsResourceDir, recursive: true);
     }
     Directory.Move(gameContentDir, contentsResourceDir);
 
@@ -282,7 +271,7 @@ void PackageOSXIntel()
     }
 
     // Cleanup
-    Directory.Delete(sourceDir, true);
+    DeleteDirectory(sourceDir, true);
 
     Console.WriteLine($"Created archive: {tarPath}");
 }
@@ -318,7 +307,7 @@ void PackageOSXAppleSilicon()
     string gameContentDir = Path.Combine(macOSDir, "Content");
     if (Directory.Exists(contentsResourceDir))
     {
-        Directory.Delete(contentsResourceDir, recursive: true);
+        DeleteDirectory(contentsResourceDir, recursive: true);
     }
     Directory.Move(gameContentDir, contentsResourceDir);
 
@@ -342,7 +331,7 @@ void PackageOSXAppleSilicon()
     }
 
     // Cleanup
-    Directory.Delete(sourceDir, true);
+    DeleteDirectory(sourceDir, true);
 
     Console.WriteLine($"Created archive: {tarPath}");
 }
@@ -398,7 +387,7 @@ void PackageOSXUniversal()
         string gameContentDir = Path.Combine(macOSDir, "Content");
         if (Directory.Exists(contentsResourceDir))
         {
-            Directory.Delete(contentsResourceDir, recursive: true);
+            DeleteDirectory(contentsResourceDir, recursive: true);
         }
         Directory.Move(gameContentDir, contentsResourceDir);
     }
@@ -409,7 +398,7 @@ void PackageOSXUniversal()
         string unusedContentDir = Path.Combine(amd64Dir, "Content");
         if (Directory.Exists(unusedContentDir))
         {
-            Directory.Delete(unusedContentDir, recursive: true);
+            DeleteDirectory(unusedContentDir, recursive: true);
         }
 
         // Copy the osx-arm64 files
@@ -417,14 +406,14 @@ void PackageOSXUniversal()
         unusedContentDir = Path.Combine(arm64Dir, "Content");
         if (Directory.Exists(unusedContentDir))
         {
-            Directory.Delete(unusedContentDir, recursive: true);
+            DeleteDirectory(unusedContentDir, recursive: true);
         }
 
         // Move the game Content directory to the resources directory
         string gameContentDir = Path.Combine(arm64SourceDir, "Content");
         if (Directory.Exists(contentsResourceDir))
         {
-            Directory.Delete(contentsResourceDir, recursive: true);
+            DeleteDirectory(contentsResourceDir, recursive: true);
         }
         Directory.Move(gameContentDir, contentsResourceDir);
     }
@@ -471,8 +460,8 @@ void PackageOSXUniversal()
     }
 
     // Cleanup
-    Directory.Delete(amd64SourceDir, true);
-    Directory.Delete(arm64SourceDir, true);
+    DeleteDirectory(amd64SourceDir, true);
+    DeleteDirectory(arm64SourceDir, true);
 
     Console.WriteLine($"Created archive: {tarPath}");
 }
@@ -576,6 +565,22 @@ void Lipo(string source1, string source2, string destination)
     process.BeginOutputReadLine();
     process.BeginErrorReadLine();
     process.WaitForExit();
+}
+
+void DeleteDirectory(string path, bool recursive = false)
+{
+    while (Directory.Exists(path))
+    {
+        try
+        {
+            Directory.Delete(path, recursive);
+        }
+        catch (IOException)
+        {
+            Thread.Sleep(100);
+            continue;
+        }
+    }
 }
 
 void CopyDirectory(string sourceDir, string targetDir)
