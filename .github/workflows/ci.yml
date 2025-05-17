@@ -1,0 +1,68 @@
+name: CI
+
+on:
+    push:
+        branches: [ main ]
+    pull_request:
+        branches: [ main ]
+    workflow_dispatch:
+
+jobs:
+    build:
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                os: [ubuntu-latest, windows-latest, macos-latest]
+        steps:
+        - uses: actions/checkout@v3
+          with:
+              fetch-depth: 0
+              submodules: recursive
+                
+        - name: Setup .NET
+          uses: actions/setup-dotnet@v3
+          with:
+              dotnet-version: 8.0.x
+                
+        - name: Restore dependencies
+          run: dotnet restore
+        
+        - name: Restore Tools
+          run: dotnet tool restore
+          working-directory: examples/ShyFox.MonoPack.Tool.Example
+            
+        - name: Build
+          run: dotnet build --no-restore -c Release -tl:off -v:diag
+            
+        - name: Test Tar
+          run: .artifacts/bin/source/ShyFox.MonoPack/Release/net8.0/ShyFox.MonoPack -p examples/ShyFox.MonoPack.Tool.Example/ShyFox.MonoPack.Tool.Example.csproj -o ./artifacts/builds/tar -e ExampleProject -r win-arm64 -r win-x64 -r linux-x64 -r osx-arm64 -r osx-x64 -i examples/ShyFox.MonoPack.Tool.Example/Info.plist -c examples/ShyFox.MonoPack.Tool.Example/Icon.icns -v
+
+        - name: Test Zip
+          run: .artifacts/bin/source/ShyFox.MonoPack/Release/net8.0/ShyFox.MonoPack -p examples/ShyFox.MonoPack.Tool.Example/ShyFox.MonoPack.Tool.Example.csproj -o ./artifacts/builds/zip -e ExampleProject -rids win-arm64,win-x64,linux-x64,osx-arm64,osx-x64 -i examples/ShyFox.MonoPack.Tool.Example/Info.plist -c examples/ShyFox.MonoPack.Tool.Example/Icon.icns -z -v
+
+        - name: Test Zip Has permissions
+          if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+          run: zipinfo ./artifacts/builds/zip/ExampleProject-universal.zip
+
+        - name: Test Zip Has permissions
+          if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+          run: zipinfo ./artifacts/builds/zip/ExampleProject-linux-x64.zip
+
+        - name: Test Zip Has permissions
+          if: matrix.os == 'windows-latest'
+          run: 7z l -slt ./artifacts/builds/zip/ExampleProject-universal.zip
+
+        - name: Test Zip Has permissions
+          if: matrix.os == 'windows-latest'
+          run: 7z l -slt ./artifacts/builds/zip/ExampleProject-linux-x64.zip
+
+        # - name: Package
+        #   if: github.event_name != 'pull_request' && matrix.os == 'ubuntu-latest'
+        #   run: dotnet pack --no-build --output ./artifacts
+            
+        # - name: Upload artifacts
+        #   if: github.event_name != 'pull_request' && matrix.os == 'ubuntu-latest'
+        #   uses: actions/upload-artifact@v3
+        #   with:
+        #       name: nuget-packages
+        #       path: ./artifacts/*.nupkg
