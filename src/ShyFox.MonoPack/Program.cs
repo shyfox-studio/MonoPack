@@ -212,7 +212,18 @@ void PackageLinux()
         TarDirectory(sourceDir, false, gz, _executableFile, projectName);
     }
 
-    Directory.Delete(sourceDir, true);
+    while (Directory.Exists(sourceDir))
+    {
+        try
+        {
+            Directory.Delete(sourceDir, true);
+            Thread.Sleep(100);
+        }
+        catch (IOException)
+        {
+            continue;
+        }
+    }
 
     Console.WriteLine($"Created archive: {tarPath}");
 }
@@ -616,6 +627,16 @@ void ParseArguments()
                     _runtimeIdentifiers.Add(rid);
                 }
                 break;
+            case "-rids":
+                if (i + 1 < args.Length)
+                {
+                    string[] rids = args[++i].Split(',');
+                    foreach (string rid in rids)
+                    {
+                        _runtimeIdentifiers.Add(rid);
+                    }
+                }
+                break;
 
             case "-i":
             case "--info-plist":
@@ -805,6 +826,7 @@ void DisplayHelp()
             -p --project <path>             Path to the .csproj file (optional if only one .csproj in current directory)
             -o --output <dir>               Output directory (default: [project]/bin/Packed)
             -r --runtime-identifier <rid>   Specify target runtime identifier(s) to build for.
+            -rids <rids>                    Comma separated list of runtime identifiers to build for (e.g --rids win-x64,linux-x64)
             -i --info-plist <path>          Path to Info.plist file (required when packaging for macOS)
             -c --icns <path>                Path to .icns file (required when packaging for macOS)
             -e --executable <name>          Name of the executable file to set as executable
@@ -835,6 +857,7 @@ void DisplayHelp()
             monopack
             monopack -h
             monopack -p ./src/MyGame.csproj -o ./artifacts/builds -r win-x64 -r osx-x64 -r osx-armd64 -r linux-x64 -i ./Info.plist -c ./Icon.icns
+            monopack -p ./src/MyGame.csproj -o ./artifacts/builds -rids win-x64,osx-x64,osx-armd64,linux-x64 -i ./Info.plist -c ./Icon.icns
         """
     );
 }
