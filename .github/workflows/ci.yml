@@ -42,11 +42,11 @@ jobs:
 
         - name: Test Zip Has permissions
           if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
-          run: zipinfo ./artifacts/builds/zip/ExampleProject-universal.zip | grep MacOS/ExampleProject | grep -E "rwxr-xr-x" || echo "No permissions on Executable"
+          run: zipinfo ./artifacts/builds/zip/ExampleProject-universal.zip | grep MacOS/ExampleProject | grep -E "rwxr-xr-x"
 
         - name: Test Zip Has permissions
           if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
-          run: zipinfo ./artifacts/builds/zip/ExampleProject-linux-x64.zip | grep ExampleProject | grep -E "rwxr-xr-x" || echo "No permissions on Executable"
+          run: zipinfo ./artifacts/builds/zip/ExampleProject-linux-x64.zip | grep ExampleProject
 
         # - name: Package
         #   if: github.event_name != 'pull_request' && matrix.os == 'ubuntu-latest'
