@@ -491,3 +491,9 @@ dotnet_diagnostic.CA1056.severity = none
 ### https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1711
 ################################################################################
 dotnet_diagnostic.CA1711.severity = none
+
+################################################################################
+### CA1031: Do not catch general exception types
+### https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1031
+################################################################################
+dotnet_diagnostic.CA1031.severity = none
