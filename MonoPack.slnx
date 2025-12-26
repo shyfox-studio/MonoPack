@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MonoPack/MonoPack.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MonoPack.Tests/MonoPack.Tests.csproj" />
+  </Folder>
+</Solution>

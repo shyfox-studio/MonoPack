@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg version="1.1" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+ <rect transform="scale(-1,1)" x="-512" width="512" height="512" rx="100" ry="100" fill="#f8723d" stop-color="#000000" style="paint-order:stroke fill markers"/>
+ <g transform="matrix(.93273 0 0 .93273 24.686 35.149)" fill="none" stroke="#fff" stroke-linejoin="round" stroke-width="17.709">
+  <g stroke-linecap="round">
+   <path d="m248 232.54v191.31m168.07-282.74v198.41l-168.07 84.331" stop-color="#000000" style="paint-order:stroke fill markers"/>
+   <path d="m248 232.54v191.31m-168.07-282.74v198.41l168.07 84.331" stop-color="#000000" style="paint-order:stroke fill markers"/>
+   <path d="m248 232.54 168.07-91.422" stop-color="#000000" style="paint-order:stroke fill markers"/>
+   <path d="m248 232.54-168.07-91.422" stop-color="#000000" style="paint-order:stroke fill markers"/>
+   <path d="m248 49.7 168.07 91.422" stop-color="#000000" style="paint-order:stroke fill markers"/>
+   <path d="m248 49.7-168.07 91.422" stop-color="#000000" style="paint-order:stroke fill markers"/>
+  </g>
+  <path d="m159.73 97.391 163.35 94.31v118.69l41.703-24.077v-116.64l-158-97.557" stop-color="#000000" style="paint-order:stroke fill markers"/>
+ </g>
+</svg>

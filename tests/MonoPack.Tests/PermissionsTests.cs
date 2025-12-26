@@ -5,7 +5,7 @@ using NUnit.Framework;
 using System.Text;
 using System.IO;
 
-namespace ShyFox.MonoPack.Tests;
+namespace MonoPack.Tests;
 
 public class PermissionsTests
 {
