@@ -15,24 +15,15 @@ internal abstract class PlatformBuilder : IPlatformBuilder
     {
         Console.WriteLine($"Building {rid}");
 
-        string arguments = $"publish \"{projectPath}\" -c Release -r {rid} " +
-                            "-p:PublishReadyToRun=false " +
-                            "-p:TieredCompilation=false " +
-                            "-p:PublishSingleFile=true " +
-                            "--self-contained ";
-
-
-        if(!string.IsNullOrEmpty(executableName))
-        {
-            arguments += $"-p:AssemblyName=\"{executableName}\" ";
-        }
-
-        arguments += $"-o \"{outputDir}\"";
-
         ProcessStartInfo startInfo = new()
         {
             FileName = "dotnet",
-            Arguments = arguments,
+            Arguments = $"publish \"{projectPath}\" -c Release -r {rid} " +
+                        "-p:PublishReadyToRun=false " +
+                        "-p:TieredCompilation=false " +
+                        "-p:PublishSingleFile=true " +
+                        "--self-contained " +
+                        $"-o \"{outputDir}\"",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
@@ -61,15 +52,44 @@ internal abstract class PlatformBuilder : IPlatformBuilder
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
         process.WaitForExit();
-        process.WaitForExit();
 
         if (process.ExitCode != 0)
         {
             throw new InvalidOperationException($"Build failed for {rid}");
         }
 
+        // Rename executable if custom name was specified
+        if (!string.IsNullOrEmpty(executableName))
+        {
+            RenameExecutable(projectPath, outputDir, rid, executableName, verbose);
+        }
+
         // Platform-specific post build actions
         PostBuildActions(outputDir, rid, verbose);
+    }
+
+    private static void RenameExecutable(string projectPath, string outputDir, string rid, string executableName, bool verbose)
+    {
+        string projectName = Path.GetFileNameWithoutExtension(projectPath);
+        string extension = rid.StartsWith("win", StringComparison.OrdinalIgnoreCase) ? ".exe" : string.Empty;
+
+        string oldExecutablePath = Path.Combine(outputDir, $"{projectName}{extension}");
+        string newExecutablePath = Path.Combine(outputDir, $"{executableName}{extension}");
+
+        if (File.Exists(oldExecutablePath) && !oldExecutablePath.Equals(newExecutablePath, StringComparison.Ordinal))
+        {
+            if (File.Exists(newExecutablePath))
+            {
+                File.Delete(newExecutablePath);
+            }
+
+            File.Move(oldExecutablePath, newExecutablePath);
+
+            if (verbose)
+            {
+                Console.WriteLine($"Renamed executable: {projectName}{extension} -> {executableName}{extension}");
+            }
+        }
     }
 
     /// <summary>Performs platform-specific post-build actions.</summary>

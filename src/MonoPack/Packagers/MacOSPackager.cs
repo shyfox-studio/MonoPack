@@ -21,58 +21,81 @@ internal sealed class MacOSPackager : PlatformPackager
     public override void Package(string sourceDir, string outputDir, string projectName, string? executableName, string rid, bool useZip)
     {
         string appName = executableName ?? projectName;
-        string appDir = Path.Combine(outputDir, $"{appName}.app");
+
+        // Create .app bundle in temp directory to avoid including other files when archiving
+        string tempDir = Path.Combine(Path.GetTempPath(), "MonoPack", Guid.NewGuid().ToString());
+        string appDir = Path.Combine(tempDir, $"{appName}.app");
         string contentsDir = Path.Combine(appDir, "Contents");
         string macOSDir = Path.Combine(contentsDir, "MacOS");
         string macOSContentDir = Path.Combine(macOSDir, "Content");
         string resourcesDir = Path.Combine(contentsDir, "Resources");
         string resourcesContentDir = Path.Combine(resourcesDir, "Content");
 
-
-        // Create app bundle directories
-        Directory.CreateDirectory(contentsDir);
-        Directory.CreateDirectory(macOSDir);
-        Directory.CreateDirectory(resourcesDir);
-
-        // Copy Info.plist
-        string infoPlistDest = Path.Combine(contentsDir, "Info.plist");
-        File.Copy(_infoPlistPath, infoPlistDest, overwrite: true);
-
-        // Copy the icns file
-        string icnsDest = Path.Combine(resourcesDir, Path.GetFileName(_icnsPath));
-        File.Copy(_icnsPath, icnsDest, overwrite: true);
-
-        CopyDirectory(sourceDir, macOSDir);
-
-        // Move the monogame "Content" directory that was just copied to the
-        // MacOS directory to the Resources directory
-        DeleteDirectory(resourcesContentDir, recursive: true);
-        Directory.Move(macOSContentDir, resourcesContentDir);
-
-        // Validate Info.plist configuration
-        ValidateInfoPlist(infoPlistDest, macOSDir);
-
-        string archivePath = Path.Combine(outputDir, $"{executableName ?? projectName}-{rid}.{(useZip ? "zip" : "tar.gz")}");
-        if (File.Exists(archivePath))
+        try
         {
-            File.Delete(archivePath);
+            // Create app bundle directories
+            Directory.CreateDirectory(contentsDir);
+            Directory.CreateDirectory(macOSDir);
+            Directory.CreateDirectory(resourcesDir);
+
+            // Copy Info.plist
+            string infoPlistDest = Path.Combine(contentsDir, "Info.plist");
+            File.Copy(_infoPlistPath, infoPlistDest, overwrite: true);
+
+            // Copy the icns file
+            string icnsDest = Path.Combine(resourcesDir, Path.GetFileName(_icnsPath));
+            File.Copy(_icnsPath, icnsDest, overwrite: true);
+
+            CopyDirectory(sourceDir, macOSDir);
+
+            // Move the monogame "Content" directory that was just copied to the
+            // MacOS directory to the Resources directory
+            if (Directory.Exists(macOSContentDir))
+            {
+                DeleteDirectory(resourcesContentDir, recursive: true);
+                Directory.Move(macOSContentDir, resourcesContentDir);
+            }
+
+            // Validate Info.plist configuration
+            ValidateInfoPlist(infoPlistDest, macOSDir);
+
+            string archivePath = Path.Combine(outputDir, $"{executableName ?? projectName}-{rid}.{(useZip ? "zip" : "tar.gz")}");
+            if (File.Exists(archivePath))
+            {
+                File.Delete(archivePath);
+            }
+
+            using FileStream fileStream = File.OpenWrite(archivePath);
+
+            if (useZip)
+            {
+                using ZipArchive zip = new ZipArchive(fileStream, ZipArchiveMode.Create);
+                ZipDirectory(appDir, true, zip, executableName, projectName, archivePath);
+            }
+            else
+            {
+                using GZipStream gzStream = new GZipStream(fileStream, CompressionMode.Compress);
+                TarDirectory(appDir, true, gzStream, executableName, projectName, archivePath);
+            }
+
+            DeleteDirectory(sourceDir, recursive: true);
+            Console.WriteLine($"Created macOS archive: {archivePath}");
         }
-
-        using FileStream fileStream = File.OpenWrite(archivePath);
-
-        if (useZip)
+        finally
         {
-            using ZipArchive zip = new ZipArchive(fileStream, ZipArchiveMode.Create);
-            ZipDirectory(appDir, true, zip, executableName, projectName, archivePath);
+            // Clean up temporary .app bundle
+            if(Directory.Exists(tempDir))
+            {
+                try
+                {
+                    DeleteDirectory(tempDir, recursive: true);
+                }
+                catch(IOException ex)
+                {
+                    Console.WriteLine($"Warning: Failed to clean up temporary directory {tempDir}: {ex.Message}");
+                }
+            }
         }
-        else
-        {
-            using GZipStream gzStream = new GZipStream(fileStream, CompressionMode.Compress);
-            TarDirectory(appDir, true, gzStream, executableName, projectName, archivePath);
-        }
-
-        DeleteDirectory(sourceDir, recursive: true);
-        Console.WriteLine($"Created macOS archive: {archivePath}");
     }
 
     private static void ValidateInfoPlist(string infoPlistPath, string macOSDir)
