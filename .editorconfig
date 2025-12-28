@@ -497,3 +497,15 @@ dotnet_diagnostic.CA1711.severity = none
 ### https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1031
 ################################################################################
 dotnet_diagnostic.CA1031.severity = none
+
+################################################################################
+### CA1308: Normalize strings to uppercase
+### https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1308
+################################################################################
+dotnet_diagnostic.CA1308.severity = none
+
+################################################################################
+### CA1303: Do not pass literals as localized parameters
+### https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1303
+################################################################################
+dotnet_diagnostic.CA1303.severity = none
