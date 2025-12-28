@@ -124,7 +124,10 @@ internal abstract class PlatformPackager : IPlatformPackager
                 permissions |= UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
             }
 
-            entry.ExternalAttributes = (int)permissions << 16;
+            // Need to add S_IFREG (regular file) so that the permissions
+            // are preserved when building on windows for mac/linux
+            int unixFileMode = (int)permissions | 0x8000;
+            entry.ExternalAttributes = unixFileMode << 16;
         }
     }
 
