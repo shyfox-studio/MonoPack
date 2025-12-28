@@ -29,7 +29,7 @@ jobs:
 
         - name: Restore Tools
           run: dotnet tool restore
-          working-directory: examples/MonoPackExample
+          working-directory: examples/MonoPack.Example
 
         - name: Build
           run: dotnet build --no-restore -c Release
