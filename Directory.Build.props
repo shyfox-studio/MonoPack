@@ -1,8 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
     <PropertyGroup>
-        <SolutionDirectory>$(MSBuildThisFileDirectory)</SolutionDirectory>
+        <TargetFramework>net10.0</TargetFramework>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <NeutralLanguage>en</NeutralLanguage>
+        <OverwriteReadOnlyFiles>true</OverwriteReadOnlyFiles>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
-    <Import Project="$(MSBuildThisFileDirectory)shared-configuration\msbuild\props\Shared.Configuration.props" />
+    <PropertyGroup>
+        <Copyright>Copyright © 2025 ShyFox Studio</Copyright>
+        <Authors>ShyFox Studio and contributors</Authors>
+        <Company>ShyFox Studio</Company>
+        <RepositoryType>git</RepositoryType>
+        <RepositoryBranch>main</RepositoryBranch>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+        <AnalysisLevel>latest</AnalysisLevel>
+        <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+        <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
+        <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+        <WarningsAsErrors>nullable</WarningsAsErrors>
+    </PropertyGroup>
+
 </Project>

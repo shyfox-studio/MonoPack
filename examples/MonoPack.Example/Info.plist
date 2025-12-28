@@ -5,15 +5,15 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
     <key>CFBundleExecutable</key>
-    <string>ExampleGame</string>
+    <string>MonoPack.Example</string>
     <key>CFBundleIconFile</key>
     <string>Icon</string>
     <key>CFBundleIdentifier</key>
-    <string>com.your-domain.ExampleGame</string>
+    <string>com.your-domain.MonoPack.Example</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>ExampleGame</string>
+    <string>MonoPack.Example</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>

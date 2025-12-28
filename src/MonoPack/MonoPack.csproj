@@ -4,7 +4,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.2.0</Version>
+    <Version>2.0.0</Version>
     <IsPackable>true</IsPackable>
     <PackageId>MonoPack</PackageId>
     <PackAsTool>true</PackAsTool>
@@ -22,7 +22,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="../../shared-configuration/branding/icons/monopack/monopack-128.png" Pack="true" PackagePath="" />
+    <None Include="../../images/monopack-128.png" Pack="true" PackagePath="" />
     <None Include="../../README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>MonoPack.Tests</_Parameter1>
+    </AssemblyAttribute>
   </ItemGroup>
 </Project>

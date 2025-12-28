@@ -15,21 +15,21 @@ jobs:
           submodules: recursive
 
       - name: Setup dotnet
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       - name: Run Tests
-        run: dotnet test ShyFox.MonoPack.sln --nologo --verbosity minimal --configuration Release
+        run: dotnet test MonoPack.slnx --nologo --verbosity minimal --configuration Release
 
       - name: Pack Tool
-        run: dotnet pack ./src/ShyFox.MonoPack/ShyFox.MonoPack.csproj --nologo --verbosity minimal --configuration Release
+        run: dotnet pack ./src/MonoPack/MonoPack.csproj --nologo --verbosity minimal --configuration Release
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
-          path: ./.artifacts/pkg/source/ShyFox.MonoPack/Release/*.nupkg
+          path: ./src/MonoPack/bin/Release/*.nupkg
 
   deploy:
     name: Deploy Nuget
@@ -38,9 +38,9 @@ jobs:
 
     steps:
       - name: Setup dotnet
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       - name: Download Artifacts
         uses: actions/download-artifact@v4
