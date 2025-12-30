@@ -354,7 +354,7 @@ internal sealed class Options
                 monopack -p ./src/MyGame.csproj -o ./artifacts/builds -r win-x64 -r osx-x64 -r osx-arm64 -r linux-x64 -i ./Info.plist -c ./Icon.icns
                 monopack -p ./src/MyGame.csproj -o ./artifacts/builds -rids win-x64,osx-x64,osx-arm64,linux-x64 -i ./Info.plist -c ./Icon.icns
                 monopack -p ./src/MyGame.csproj -o ./artifacts/builds -rids osx-x64,osx-arm64 -i ./Info.plist -c ./Icon.icns --macos-universal
-                monopack -p ./src/MyGame.csproj --publish-args "-p:PublishAot=true --self-contained"
+                monopack -p ./src/MyGame.csproj --publish-args "-p:PublishAot=true"
             """
         );
     }
