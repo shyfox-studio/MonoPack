@@ -11,19 +11,30 @@ internal abstract class PlatformBuilder : IPlatformBuilder
     /// <param name="rid">Runtime identifier for the target platform.</param>
     /// <param name="executableName">Optional custom name for the executable.</param>
     /// <param name="verbose">Indicates whether to display verbose output.</param>
-    public void Build(string projectPath, string outputDir, string rid, string? executableName, bool verbose)
+    /// <param name="publishArgs">Custom arguments to pass to dotnet publish. When specified, default flags are not applied.</param>
+    public void Build(string projectPath, string outputDir, string rid, string? executableName, bool verbose, string? publishArgs)
     {
         Console.WriteLine($"Building {rid}");
+
+        string arguments = $"publish \"{projectPath}\" -c Release -r {rid} --self-contained ";
+
+        if(!string.IsNullOrEmpty(publishArgs))
+        {
+            arguments += $"{publishArgs} ";
+        }
+
+        // Use custom assembly name if executable name was given
+        if(!string.IsNullOrEmpty(executableName))
+        {
+            arguments += $"-p:AssemblyName=\"{executableName}\" ";
+        }
+
+        arguments += $"-o \"{outputDir}\"";
 
         ProcessStartInfo startInfo = new()
         {
             FileName = "dotnet",
-            Arguments = $"publish \"{projectPath}\" -c Release -r {rid} " +
-                        "-p:PublishReadyToRun=false " +
-                        "-p:TieredCompilation=false " +
-                        "-p:PublishSingleFile=true " +
-                        "--self-contained " +
-                        $"-o \"{outputDir}\"",
+            Arguments = arguments,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
@@ -58,11 +69,11 @@ internal abstract class PlatformBuilder : IPlatformBuilder
             throw new InvalidOperationException($"Build failed for {rid}");
         }
 
-        // Rename executable if custom name was specified
-        if (!string.IsNullOrEmpty(executableName))
-        {
-            RenameExecutable(projectPath, outputDir, rid, executableName, verbose);
-        }
+        // // Rename executable if custom name was specified
+        // if (!string.IsNullOrEmpty(executableName))
+        // {
+        //     RenameExecutable(projectPath, outputDir, rid, executableName, verbose);
+        // }
 
         // Platform-specific post build actions
         PostBuildActions(outputDir, rid, verbose);

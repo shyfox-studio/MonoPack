@@ -9,5 +9,6 @@ internal interface IPlatformBuilder
     /// <param name="rid">Runtime identifier for the target platform.</param>
     /// <param name="executableName">Optional custom name for the executable.</param>
     /// <param name="verbose">Indicates whether to display verbose output.</param>
-    void Build(string projectPath, string outputDir, string rid, string? executableName, bool verbose);
+    /// <param name="publishArgs">Custom arguments to pass to dotnet publish. When specified, default flags are not applied.</param>
+    void Build(string projectPath, string outputDir, string rid, string? executableName, bool verbose, string? publishArgs);
 }

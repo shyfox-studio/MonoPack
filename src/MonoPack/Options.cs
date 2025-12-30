@@ -30,7 +30,13 @@ internal sealed class Options
     public bool VerboseOutput { get; set; }
 
     /// <summary>Indicates whether to create a universal macOS .app bundle when both osx-x64 and osx-arm64 are specified.</summary>
-    public bool MacOSUniversal {get; set;}
+    public bool MacOSUniversal { get; set; }
+
+    /// <summary>
+    /// Gets or Sets additional arguments to pass to dotnet publish.
+    /// When specified, default publish flags are automatically disabled.
+    /// </summary>
+    public string? PublishArgs { get; set; }
 
     /// <summary>Validates and configures the MonoPack options.</summary>
     public void Validate()
@@ -273,6 +279,13 @@ internal sealed class Options
                     options.MacOSUniversal = true;
                     break;
 
+                case "--publish-args":
+                    if (i + 1 < args.Length)
+                    {
+                        options.PublishArgs = args[++i];
+                    }
+                    break;
+
                 case "-h":
                 case "--help":
                     DisplayHelp();
@@ -309,6 +322,7 @@ internal sealed class Options
                 -z --zip                        Use zip for packaging instead of tar.gz (only for Linux and MacOS)
                 -v --verbose                    Enable verbose output
                 --macos-universal               Create a universal .app bundle when both osx-x64 and osx-arm64 are specified
+                --publish-args <args>           Custom arguments to pass to dotnet publish (disables default flags)
                 -h --help                       Show this help message
 
             Available runtime identifiers:
@@ -340,6 +354,7 @@ internal sealed class Options
                 monopack -p ./src/MyGame.csproj -o ./artifacts/builds -r win-x64 -r osx-x64 -r osx-arm64 -r linux-x64 -i ./Info.plist -c ./Icon.icns
                 monopack -p ./src/MyGame.csproj -o ./artifacts/builds -rids win-x64,osx-x64,osx-arm64,linux-x64 -i ./Info.plist -c ./Icon.icns
                 monopack -p ./src/MyGame.csproj -o ./artifacts/builds -rids osx-x64,osx-arm64 -i ./Info.plist -c ./Icon.icns --macos-universal
+                monopack -p ./src/MyGame.csproj --publish-args "-p:PublishAot=true --self-contained"
             """
         );
     }
