@@ -54,10 +54,10 @@ internal sealed class MonoPackService
             Console.WriteLine("Building universal macOS bundle (osx-x64 + osx-arm64)");
 
             IPlatformBuilder x64Builder = PlatformBuilderFactory.CreateBuilder("osx-x64");
-            x64Builder.Build(_options.ProjectPath, x64BuildDir, "osx-x64", _options.ExecutableFileName, _options.VerboseOutput);
+            x64Builder.Build(_options.ProjectPath, x64BuildDir, "osx-x64", _options.ExecutableFileName, _options.VerboseOutput, _options.PublishArgs);
 
             IPlatformBuilder arm64Builder = PlatformBuilderFactory.CreateBuilder("osx-arm64");
-            arm64Builder.Build(_options.ProjectPath, arm64BuildDir, "osx-arm64", _options.ExecutableFileName, _options.VerboseOutput);
+            arm64Builder.Build(_options.ProjectPath, arm64BuildDir, "osx-arm64", _options.ExecutableFileName, _options.VerboseOutput, _options.PublishArgs);
 
             // Create universal package
             UniversalMacOSPackager packager = new UniversalMacOSPackager(_options.InfoPlistPath!, _options.IcnsPath!, x64BuildDir, arm64BuildDir);
@@ -116,7 +116,7 @@ internal sealed class MonoPackService
         {
             // Build the project for the specified runtime
             IPlatformBuilder builder = PlatformBuilderFactory.CreateBuilder(rid);
-            builder.Build(_options.ProjectPath, buildOutputDir, rid, _options.ExecutableFileName, _options.VerboseOutput);
+            builder.Build(_options.ProjectPath, buildOutputDir, rid, _options.ExecutableFileName, _options.VerboseOutput, _options.PublishArgs);
 
             // Package the build artifacts
             IPlatformPackager packager = PlatformPackagerFactory.CreatePackager(rid, _options.InfoPlistPath, _options.IcnsPath);

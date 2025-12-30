@@ -47,6 +47,7 @@ Options:
     -z --zip                        Use zip for packaging instead of tar.gz (only for Linux and MacOS)
     -v --verbose                    Enable verbose output
     --macos-universal               Create a universal .app bundle when both osx-x64 and osx-arm64 are specified
+    --publish-args <args>           Custom arguments to pass to dotnet publish (disables default flags)
     -h --help                       Show this help message
 
 Available runtime identifiers:
@@ -84,6 +85,7 @@ Examples:
     monopack -p ./src/MyGame.Desktop.csproj -e MyGame -o ./artifacts/builds -r win-x64 -r osx-x64 -r osx-arm64 -r linux-x64 -i ./Info.plist -c ./Icon.icns
     monopack -p ./src/MyGame.csproj -o ./artifacts/builds -rids win-x64,linux-x64,osx-x64,osx-arm64 -i ./Info.plist -c ./Icon.icns
     monopack -p ./src/MyGame.csproj -o ./artifacts/builds -rids osx-x64,osx-arm64 -i ./Info.plist -c ./Icon.icns --macos-universal
+    monopack -p ./src/MyGame.csproj --publish-args "-p:PublishAot=true"
 ```
 
 > [!IMPORTANT]
