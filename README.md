@@ -109,7 +109,7 @@ Examples:
 
 ## Required Files for macOS
 
-When packaging for macOS, it is required that you have an `Info.plist` and an Apple Icon (.icns) file in your project directory.  There is an example `Info.plist` in [/example/ExampleGame/Info.plist](/example/ExampleGame/Info.plist).  You can use this file and just replaced the required values for your game:
+When packaging for macOS, it is required that you have an `Info.plist` and an Apple Icon (.icns) file in your project directory.  There is an example `Info.plist` in [/example/ExampleGame/Info.plist](/examples/MonoPack.Example/Info.plist).  You can use this file and just replaced the required values for your game:
 
 - **CFBundleExecutable**: Update the string to be the same name as your project file (.csproj) minus the extension.  For example, if your project file is named `MyGame.csproj` then you would use the following
 
@@ -131,7 +131,7 @@ value in the `CFBundleExecutable`. For example, if your project file is named `M
     <string>MyGame</string>
     ```
 
-For the `Icon.icns` file, you can find a default MonoGame one in at [/example/ExampleGame/Icon.icns](./example/ExampleGame/Icon.icns).  If you would like to create your own, there are tons of online tools for converting image files to the Apple Icon (icns) format.  Just google.
+For the `Icon.icns` file, you can find a default MonoGame one in at [/example/ExampleGame/Icon.icns](./examples/MonoPack.Example/Icon.icns).  If you would like to create your own, there are tons of online tools for converting image files to the Apple Icon (icns) format.  Just google.
 
 ## License
 
