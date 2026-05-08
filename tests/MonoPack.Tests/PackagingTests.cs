@@ -42,6 +42,7 @@ public sealed class PackagingTests : TestBase
 
     [Theory]
     [InlineData("linux-x64")]
+    [InlineData("linux-arm64")]
     [InlineData("osx-x64")]
     [InlineData("osx-arm64")]
     public void ZipPackage_ShouldHaveCorrectFilePermissions(string rid)
@@ -83,6 +84,7 @@ public sealed class PackagingTests : TestBase
 
     [Theory]
     [InlineData("linux-x64")]
+    [InlineData("linux-arm64")]
     [InlineData("osx-x64")]
     [InlineData("osx-arm64")]
     public void TarGzPackage_ShouldHaveCorrectPermissions(string rid)
@@ -399,6 +401,7 @@ public sealed class PackagingTests : TestBase
 
     [Theory]
     [InlineData("linux-x64")]
+    [InlineData("linux-arm64")]
     [InlineData("win-x64")]
     public void NonMacOSPlatform_ShouldDetermineExecutableName(string rid)
     {
